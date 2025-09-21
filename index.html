@@ -9,6 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.15/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -94,6 +95,10 @@
                     <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-4 space-y-2 md:space-y-0">
                         <h2 class="text-xl font-semibold text-[#5E503F]">Daftar Siswa</h2>
                         <div class="flex flex-wrap items-center justify-end space-x-2 space-y-2 md:space-y-0">
+                            <label for="excelInput" class="bg-[#A47F6A] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#B7A490] transition-colors duration-200 cursor-pointer">
+                                Import Excel
+                            </label>
+                            <input type="file" id="excelInput" accept=".xlsx, .xls" class="hidden">
                             <button id="addStudentBtn" class="bg-[#A47F6A] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#B7A490] transition-colors duration-200">
                                 + Tambah Siswa
                             </button>
@@ -200,7 +205,7 @@
         <!-- Footer -->
         <footer class="bg-[#EAE0D5] border-t border-[#D4C4B0] p-4 text-center text-sm text-[#5E503F] mt-6">
             <div class="container mx-auto">
-                <p>Hak Cipta &copy; 2025  Data Siswa. UPT SDN 22 Tanah Keras</p>
+                <p>Hak Cipta &copy; 2024 Dasbor Analisis Data Siswa. Semua Hak Dilindungi.</p>
             </div>
         </footer>
 
@@ -342,6 +347,8 @@ const addStudentBtn = document.getElementById('addStudentBtn');
 const promoteClassBtn = document.getElementById('promoteClassBtn');
 const downloadPdfBtn = document.getElementById('downloadPdfBtn');
 const downloadArchivedPdfBtn = document.getElementById('downloadArchivedPdfBtn');
+const excelInput = document.getElementById('excelInput');
+
 const addStudentModal = document.getElementById('addStudentModal');
 const closeModalBtn = document.getElementById('closeModalBtn');
 const addStudentForm = document.getElementById('addStudentForm');
@@ -715,6 +722,57 @@ function initialize() {
     classFilter.addEventListener('change', applyFilters);
     genderFilter.addEventListener('change', applyFilters);
     
+    excelInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) {
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+            // Define the expected header row
+            const expectedHeaders = ['Nama', 'Kelas', 'NISN/NIS', 'NIK', 'Jenis Kelamin', 'Tempat Lahir', 'Tanggal Lahir', 'Agama', 'Alamat', 'Kecamatan', 'Nama Ayah', 'Nama Ibu'];
+            
+            // Validate headers
+            if (!jsonData || jsonData.length === 0 || !Array.isArray(jsonData[0]) || jsonData[0].length < expectedHeaders.length || !expectedHeaders.every((header, index) => jsonData[0][index] === header)) {
+                showStatusMessage('Gagal mengimpor: Format header Excel tidak valid. Harap gunakan format yang benar.');
+                return;
+            }
+
+            // Map data to student objects, skipping the header row
+            const newStudents = jsonData.slice(1).map(row => ({
+                id: Date.now() + Math.random(), // Simple unique ID
+                namaSiswa: row[0],
+                kelas: row[1],
+                nisnNis: row[2],
+                nikSiswa: row[3] || '',
+                jenisKelamin: row[4],
+                tempatLahir: row[5] || '',
+                tanggalLahir: row[6],
+                agama: row[7] || '',
+                alamat: row[8] || '',
+                kecamatan: row[9] || '',
+                namaAyah: row[10] || '',
+                namaIbu: row[11] || '',
+            }));
+
+            // Merge new data with existing data
+            studentData = [...studentData, ...newStudents];
+
+            updateClassFilterOptions();
+            applyFilters();
+            saveDataToLocalStorage();
+            showStatusMessage('Data dari Excel berhasil diimpor!');
+        };
+        reader.readAsArrayBuffer(file);
+    });
+    
     addStudentBtn.addEventListener('click', () => {
         modalTitle.textContent = 'Formulir Data Siswa Baru';
         submitBtn.textContent = 'Simpan Siswa';
@@ -765,7 +823,7 @@ function initialize() {
         }
 
         // Add title below logo
-        const title = "DATA SISWA UPT SDN 22 TANAH KERAS";
+        const title = "Daftar Siswa UPT SDN 22 TANAH KERAS";
         const pageWidth = doc.internal.pageSize.getWidth();
         const titleWidth = doc.getStringUnitWidth(title) * doc.internal.getFontSize() / doc.internal.scaleFactor;
         const titleX = (pageWidth - titleWidth) / 2;
