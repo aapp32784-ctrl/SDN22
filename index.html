@@ -9,7 +9,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.15/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- FIX: Mengganti URL CDN untuk pustaka XLSX ke versi yang lebih stabil -->
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -722,6 +723,7 @@ function initialize() {
     classFilter.addEventListener('change', applyFilters);
     genderFilter.addEventListener('change', applyFilters);
     
+    // Perbaikan pada event listener untuk impor Excel
     excelInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) {
@@ -734,37 +736,62 @@ function initialize() {
             const workbook = XLSX.read(data, { type: 'array' });
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-            // Define the expected header row
-            const expectedHeaders = ['Nama', 'Kelas', 'NISN/NIS', 'NIK', 'Jenis Kelamin', 'Tempat Lahir', 'Tanggal Lahir', 'Agama', 'Alamat', 'Kecamatan', 'Nama Ayah', 'Nama Ibu'];
             
-            // Validate headers
-            if (!jsonData || jsonData.length === 0 || !Array.isArray(jsonData[0]) || jsonData[0].length < expectedHeaders.length || !expectedHeaders.every((header, index) => jsonData[0][index] === header)) {
-                showStatusMessage('Gagal mengimpor: Format header Excel tidak valid. Harap gunakan format yang benar.');
+            // Mengubah data worksheet menjadi format JSON
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            
+            // PENTING: Mendefinisikan header yang diharapkan dan mengubahnya menjadi objek dengan kunci yang sesuai
+            const expectedHeaders = {
+                'nama': 'namaSiswa',
+                'kelas': 'kelas',
+                'nisn/nis': 'nisnNis',
+                'nik': 'nikSiswa',
+                'jenis kelamin': 'jenisKelamin',
+                'tempat lahir': 'tempatLahir',
+                'tanggal lahir': 'tanggalLahir',
+                'agama': 'agama',
+                'alamat': 'alamat',
+                'kecamatan': 'kecamatan',
+                'nama ayah': 'namaAyah',
+                'nama ibu': 'namaIbu'
+            };
+
+            if (!jsonData || jsonData.length === 0) {
+                showStatusMessage('Gagal mengimpor: File Excel kosong.');
                 return;
             }
 
-            // Map data to student objects, skipping the header row
-            const newStudents = jsonData.slice(1).map(row => ({
-                id: Date.now() + Math.random(), // Simple unique ID
-                namaSiswa: row[0],
-                kelas: row[1],
-                nisnNis: row[2],
-                nikSiswa: row[3] || '',
-                jenisKelamin: row[4],
-                tempatLahir: row[5] || '',
-                tanggalLahir: row[6],
-                agama: row[7] || '',
-                alamat: row[8] || '',
-                kecamatan: row[9] || '',
-                namaAyah: row[10] || '',
-                namaIbu: row[11] || '',
-            }));
+            const headers = jsonData[0].map(h => h.toLowerCase().trim());
+            const requiredHeaders = Object.keys(expectedHeaders);
+            const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
 
-            // Merge new data with existing data
-            studentData = [...studentData, ...newStudents];
+            if (missingHeaders.length > 0) {
+                showStatusMessage(`Gagal mengimpor: Header Excel tidak valid. Header yang hilang: ${missingHeaders.map(h => `'${h}'`).join(', ')}`);
+                return;
+            }
 
+            const newStudents = jsonData.slice(1).map(row => {
+                const student = {};
+                headers.forEach((header, index) => {
+                    const key = expectedHeaders[header];
+                    if (key) {
+                        student[key] = row[index];
+                    }
+                });
+                student.id = Date.now() + Math.random();
+                return student;
+            });
+
+            // Memastikan data yang diimpor tidak mengandung baris kosong
+            const validStudents = newStudents.filter(student => student.namaSiswa);
+
+            if (validStudents.length === 0) {
+                showStatusMessage('Gagal mengimpor: Tidak ada data siswa yang valid ditemukan setelah header.');
+                return;
+            }
+
+            studentData = [...studentData, ...validStudents];
+            
             updateClassFilterOptions();
             applyFilters();
             saveDataToLocalStorage();
@@ -1013,4 +1040,3 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
-
