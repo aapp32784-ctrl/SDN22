@@ -205,7 +205,7 @@
         <!-- Footer -->
         <footer class="bg-[#EAE0D5] border-t border-[#D4C4B0] p-4 text-center text-sm text-[#5E503F] mt-6">
             <div class="container mx-auto">
-                <p>Hak Cipta &copy; 2025 Dasbor Analisis Data Siswa.UPT SDN 22 Tanah Keras.</p>
+                <p>Hak Cipta &copy; 2024 Dasbor Analisis Data Siswa. Semua Hak Dilindungi.</p>
             </div>
         </footer>
 
@@ -817,17 +817,18 @@ function initialize() {
             const imgWidth = 60;
             const imgHeight = 60;
             const margin = 20;
-            const xPos = margin;
-            const yPos = margin;
+            const xPos = (doc.internal.pageSize.getWidth() / 2) - (imgWidth / 2); // Pusatkan gambar
+            const yPos = 20;
             doc.addImage(logoBase64, 'PNG', xPos, yPos, imgWidth, imgHeight);
         }
 
         // Add title below logo
-        const title = "DATA SISWA UPT SDN 22 TANAH KERAS";
-        const pageWidth = doc.internal.pageSize.getWidth();
+        const title = "Daftar Siswa UPT SDN 22 TANAH KERAS";
+        doc.setFontSize(14);
         const titleWidth = doc.getStringUnitWidth(title) * doc.internal.getFontSize() / doc.internal.scaleFactor;
-        const titleX = (pageWidth - titleWidth) / 2;
-        doc.text(title, titleX, 40);
+        const titleX = (doc.internal.pageSize.getWidth() - titleWidth) / 2;
+        doc.text(title, titleX, 90);
+        doc.setFontSize(10); // Atur ulang ukuran font ke default
 
         const headers = [
             ['Nama', 'Kelas', 'NISN/NIS', 'NIK', 'Jenis Kelamin', 'Tempat Lahir', 'Tanggal Lahir', 'Agama', 'Alamat', 'Kecamatan', 'Nama Ayah', 'Nama Ibu']
@@ -851,7 +852,7 @@ function initialize() {
         doc.autoTable({
             head: headers,
             body: data,
-            startY: 80, 
+            startY: 120, 
             styles: {
                 fontSize: 8,
                 cellPadding: 4,
@@ -883,17 +884,18 @@ function initialize() {
             const imgWidth = 60;
             const imgHeight = 60;
             const margin = 20;
-            const xPos = margin;
-            const yPos = margin;
+            const xPos = (doc.internal.pageSize.getWidth() / 2) - (imgWidth / 2); // Pusatkan gambar
+            const yPos = 20;
             doc.addImage(logoBase64, 'PNG', xPos, yPos, imgWidth, imgHeight);
         }
 
         // Add title below logo
         const title = "ARSIP KELULUSAN UPT SDN 22 TANAH KERAS";
-        const pageWidth = doc.internal.pageSize.getWidth();
+        doc.setFontSize(14);
         const titleWidth = doc.getStringUnitWidth(title) * doc.internal.getFontSize() / doc.internal.scaleFactor;
-        const titleX = (pageWidth - titleWidth) / 2;
-        doc.text(title, titleX, 40);
+        const titleX = (doc.internal.pageSize.getWidth() - titleWidth) / 2;
+        doc.text(title, titleX, 90);
+        doc.setFontSize(10);
 
         const headers = [
             ['Nama', 'NISN/NIS', 'Tanggal Lulus']
@@ -908,7 +910,7 @@ function initialize() {
         doc.autoTable({
             head: headers,
             body: data,
-            startY: 80,
+            startY: 120,
             styles: {
                 fontSize: 10,
                 cellPadding: 6,
@@ -948,7 +950,7 @@ function initialize() {
             noHp: ''
         };
 
-        if (studentIndex) {
+        if (studentIndex !== null) { // Perbaikan: Cek jika studentIndex tidak null
             studentData[studentIndex] = { ...studentData[studentIndex], ...formData };
         } else {
             const newStudent = { id: Date.now(), ...formData };
@@ -958,6 +960,12 @@ function initialize() {
         addStudentModal.classList.add('hidden');
         addStudentForm.reset();
         
+        // --- Perbaikan di sini: reset filter setelah data diubah ---
+        searchInput.value = '';
+        classFilter.value = '';
+        genderFilter.value = '';
+        // -------------------------------------------------------------
+
         updateClassFilterOptions();
         applyFilters();
         saveDataToLocalStorage();
@@ -1005,4 +1013,3 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
-
