@@ -3,1041 +3,440 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dasbor Analisis Data Siswa</title>
+    <title>QR Code</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.15/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- FIX: Mengganti URL CDN untuk pustaka XLSX ke versi yang lebih stabil -->
-    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <!-- Google Fonts - Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- QR Code JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/davidshimjs-qrcodejs@0.0.2/qrcode.min.js"></script>
+    <!-- jsPDF Library for PDF Download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #F9F5EF; 
-            color: #3D352E; 
+            background-color: #e0f2f7; /* Latar belakang biru muda */
         }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 300px;
-            max-height: 350px;
+        /* Style untuk tombol unduh agar sejajar */
+        .download-buttons button {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        @media (min-width: 768px) {
-            .chart-container {
-                height: 320px;
-            }
-        }
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #F0EBE3;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #D4C4B0;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #B7A490;
-        }
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .download-buttons button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
         }
     </style>
 </head>
-<body class="antialiased flex items-center justify-center min-h-screen p-4">
-    
-    <!-- Halaman Login -->
-    <div id="loginPage" class="bg-[#EAE0D5] p-8 rounded-xl shadow-2xl w-full max-w-sm fade-in">
-        <img src="https://iili.io/3b1SedN.png" alt="Logo Dasbor" class="h-20 mx-auto mb-4">
-        <p class="text-sm text-center text-gray-600 mb-6">Silakan masuk untuk mengakses dasbor.</p>
-        
-        <form id="loginForm" class="space-y-4">
-            <div>
-                <label for="username" class="block text-sm font-medium text-gray-700">Nama Pengguna</label>
-                <input type="text" id="username" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-[#F9F5EF] focus:border-[#B7A490] focus:ring focus:ring-[#B7A490] focus:ring-opacity-50">
-            </div>
-            <div>
-                <label for="password" class="block text-sm font-medium text-gray-700">Sandi</label>
-                <input type="password" id="password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-[#F9F5EF] focus:border-[#B7A490] focus:ring focus:ring-[#B7A490] focus:ring-opacity-50">
-            </div>
-            <div id="errorMessage" class="text-red-500 text-sm text-center hidden">
-                Nama pengguna atau sandi salah.
-            </div>
-            <button type="submit" class="w-full bg-[#A47F6A] text-white py-2 rounded-lg shadow-md hover:bg-[#B7A490] transition-colors duration-200 font-semibold">
-                Login
-            </button>
-        </form>
-    </div>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full text-center">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Pembuat QR Code</h1>
 
-    <!-- Halaman Dasbor -->
-    <div id="dashboardPage" class="min-h-screen flex flex-col hidden w-full">
-        <header class="bg-[#EAE0D5] border-b border-[#D4C4B0] p-4 shadow-sm">
-            <div class="container mx-auto flex justify-between items-center">
-                <h1 class="text-2xl font-bold text-[#5E503F]">Dasbor Analisis Data Siswa</h1>
-                <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600 transition-colors duration-200">
-                    Keluar
-                </button>
-            </div>
-        </header>
-
-        <main class="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 bg-[#F9F5EF] p-6 rounded-xl shadow-md border border-[#EAE0D5]">
-                    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-4 space-y-2 md:space-y-0">
-                        <h2 class="text-xl font-semibold text-[#5E503F]">Daftar Siswa</h2>
-                        <div class="flex flex-wrap items-center justify-end space-x-2 space-y-2 md:space-y-0">
-                            <label for="excelInput" class="bg-[#A47F6A] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#B7A490] transition-colors duration-200 cursor-pointer">
-                                Import Excel
-                            </label>
-                            <input type="file" id="excelInput" accept=".xlsx, .xls" class="hidden">
-                            <button id="addStudentBtn" class="bg-[#A47F6A] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#B7A490] transition-colors duration-200">
-                                + Tambah Siswa
-                            </button>
-                            <button id="promoteClassBtn" class="bg-[#5E503F] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#3D352E] transition-colors duration-200">
-                                Naikkan Kelas
-                            </button>
-                            <button id="downloadPdfBtn" class="bg-[#5E503F] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#3D352E] transition-colors duration-200">
-                                Unduh PDF
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <input type="text" id="searchInput" placeholder="Cari Nama atau NISN/NIS..." class="w-full px-4 py-2 border border-[#D4C4B0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B7A490] bg-[#F0EBE3]">
-                        <select id="classFilter" class="w-full px-4 py-2 border border-[#D4C4B0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B7A490] bg-[#F0EBE3]">
-                            <option value="">Semua Kelas</option>
-                        </select>
-                        <select id="genderFilter" class="w-full px-4 py-2 border border-[#D4C4B0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B7A490] bg-[#F0EBE3]">
-                            <option value="">Semua Gender</option>
-                            <option value="Laki-laki">Laki-laki</option>
-                            <option value="Perempuan">Perempuan</option>
-                        </select>
-                    </div>
-
-                    <div class="overflow-x-auto max-h-[600px] overflow-y-auto" id="tableContainer">
-                        <table class="w-full text-left">
-                            <thead class="bg-[#EAE0D5] sticky top-0">
-                                <tr>
-                                    <th class="p-3 font-semibold">Nama</th>
-                                    <th class="p-3 font-semibold">Kelas</th>
-                                    <th class="p-3 font-semibold">NISN/NIS</th>
-                                    <th class="p-3 font-semibold">NIK</th>
-                                    <th class="p-3 font-semibold">Jenis Kelamin</th>
-                                    <th class="p-3 font-semibold">Tempat Lahir</th>
-                                    <th class="p-3 font-semibold">Tanggal Lahir</th>
-                                    <th class="p-3 font-semibold">Agama</th>
-                                    <th class="p-3 font-semibold">Alamat</th>
-                                    <th class="p-3 font-semibold">Kecamatan</th>
-                                    <th class="p-3 font-semibold">Nama Ayah</th>
-                                    <th class="p-3 font-semibold">Nama Ibu</th>
-                                    <th class="p-3 font-semibold text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="studentTableBody">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="lg:col-span-1 space-y-6">
-                    <div id="summarySection" class="grid grid-cols-2 gap-4">
-                         <div class="bg-[#EAE0D5] p-4 rounded-xl shadow-sm border border-[#D4C4B0] text-center">
-                            <h3 class="font-semibold text-[#5E503F]">Total Siswa</h3>
-                            <p id="totalStudents" class="text-3xl font-bold text-[#A47F6A]">-</p>
-                        </div>
-                         <div class="bg-[#EAE0D5] p-4 rounded-xl shadow-sm border border-[#D4C4B0] text-center">
-                            <h3 class="font-semibold text-[#5E503F]">Rata-rata Usia</h3>
-                            <p id="averageAge" class="text-3xl font-bold text-[#A47F6A]">-</p>
-                        </div>
-                    </div>
-
-                    <div id="detailOrChartSection">
-                        <div id="chartsPanel" class="space-y-6">
-                            <div class="bg-[#F0EBE3] p-4 rounded-xl shadow-md border border-[#EAE0D5]">
-                                <h3 class="text-lg font-semibold text-center mb-2 text-[#5E503F]">Distribusi Gender</h3>
-                                <div class="chart-container h-64 md:h-72"><canvas id="genderChart"></canvas></div>
-                            </div>
-                             <div class="bg-[#F0EBE3] p-4 rounded-xl shadow-md border border-[#EAE0D5]">
-                                <h3 class="text-lg font-semibold text-center mb-2 text-[#5E503F]">Jumlah Siswa per Kelas</h3>
-                                <div class="chart-container h-64 md:h-72"><canvas id="classChart"></canvas></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Arsip Siswa Lulus -->
-            <div id="archivedStudentsSection" class="mt-8 lg:col-span-3 bg-[#F9F5EF] p-6 rounded-xl shadow-md border border-[#EAE0D5]">
-                <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-4 space-y-2 md:space-y-0">
-                    <h2 class="text-xl font-semibold text-[#5E503F]">Arsip Siswa Lulus</h2>
-                    <button id="downloadArchivedPdfBtn" class="bg-[#5E503F] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#3D352E] transition-colors duration-200">
-                        Unduh Arsip PDF
-                    </button>
-                </div>
-                
-                <div class="overflow-x-auto max-h-[400px] overflow-y-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-[#EAE0D5] sticky top-0">
-                            <tr>
-                                <th class="p-3 font-semibold">Nama</th>
-                                <th class="p-3 font-semibold">NISN/NIS</th>
-                                <th class="p-3 font-semibold">Tanggal Lulus</th>
-                                <th class="p-3 font-semibold text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="archivedStudentTableBody">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </main>
-        
-        <!-- Footer -->
-        <footer class="bg-[#EAE0D5] border-t border-[#D4C4B0] p-4 text-center text-sm text-[#5E503F] mt-6">
-            <div class="container mx-auto">
-                <p>Hak Cipta &copy; 2025 Analisis Data Siswa. UPT SDN 22 Tanah Keras.</p>
-            </div>
-        </footer>
-
-    </div>
-
-    <!-- Modal untuk Tambah/Edit Siswa -->
-    <div id="addStudentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-[#F0EBE3] rounded-xl shadow-2xl w-full max-w-2xl p-6 relative fade-in">
-            <button id="closeModalBtn" class="absolute top-4 right-4 text-[#5E503F] hover:text-[#3D352E] text-2xl font-bold">&times;</button>
-            <h2 id="modalTitle" class="text-2xl font-bold text-center mb-6 text-[#5E503F]">Formulir Data Siswa Baru</h2>
-            <form id="addStudentForm" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="namaSiswa" class="block text-sm font-medium text-gray-700">Nama Siswa</label>
-                        <input type="text" id="namaSiswa" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-[#F9F5EF] focus:border-[#B7A490] focus:ring focus:ring-[#B7A490] focus:ring-opacity-50">
-                    </div>
-                    <div>
-                        <label for="kelas" class="block text-sm font-medium text-gray-700">Kelas</label>
-                        <select id="kelas" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-[#F9F5EF] focus:border-[#B7A490] focus:ring focus:ring-[#B7A490] focus:ring-opacity-50">
-                            <option value="">Pilih Kelas</option>
-                            <option value="Kelas 1">Kelas 1</option>
-                            <option value="Kelas 2">Kelas 2</option>
-                            <option value="Kelas 3">Kelas 3</option>
-                            <option value="Kelas 4">Kelas 4</option>
-                            <option value="Kelas 5">Kelas 5</option>
-                            <option value="Kelas 6">Kelas 6</option>
-                        </select>
-                    </div>
-                </div>
-                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="nisnNis" class="block text-sm font-medium text-gray-700">NISN/NIS</label>
-                        <input type="text" id="nisnNis" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-[#F9F5EF] focus:border-[#B7A490] focus:ring focus:ring-[#B7A490] focus:ring-opacity-50">
-                    </div>
-                    <div>
-                        <label for="nikSiswa" class="block text-sm font-medium text-gray-700">NIK Siswa</label>
-                        <input type="text" id="nikSiswa" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-[#F9F5EF] focus:border-[#B7A490] focus:ring focus:ring-[#B7A490] focus:ring-opacity-50">
-                    </div>
-                </div>
-                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="tempatLahir" class="block text-sm font-medium text-gray-700">Tempat Lahir</label>
-                        <input type="text" id="tempatLahir" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-[#F9F5EF] focus:border-[#B7A490] focus:ring focus:ring-[#B7A490] focus:ring-opacity-50">
-                    </div>
-                    <div>
-                        <label for="tanggalLahir" class="block text-sm font-medium text-gray-700">Tanggal Lahir</label>
-                        <input type="date" id="tanggalLahir" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-[#F9F5EF] focus:border-[#B7A490] focus:ring focus:ring-[#B7A490] focus:ring-opacity-50">
-                    </div>
-                </div>
-                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="jenisKelamin" class="block text-sm font-medium text-gray-700">Jenis Kelamin</label>
-                        <select id="jenisKelamin" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-[#F9F5EF] focus:border-[#B7A490] focus:ring focus:ring-[#B7A490] focus:ring-opacity-50">
-                            <option value="">Pilih</option>
-                            <option value="Laki-laki">Laki-laki</option>
-                            <option value="Perempuan">Perempuan</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="agama" class="block text-sm font-medium text-gray-700">Agama</label>
-                        <input type="text" id="agama" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-[#F9F5EF] focus:border-[#B7A490] focus:ring focus:ring-[#B7A490] focus:ring-opacity-50">
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="alamat" class="block text-sm font-medium text-gray-700">Alamat</label>
-                        <input type="text" id="alamat" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-[#F9F5EF] focus:border-[#B7A490] focus:ring focus:ring-[#B7A490] focus:ring-opacity-50">
-                    </div>
-                    <div>
-                        <label for="kecamatan" class="block text-sm font-medium text-gray-700">Kecamatan</label>
-                        <input type="text" id="kecamatan" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-[#F9F5EF] focus:border-[#B7A490] focus:ring focus:ring-[#B7A490] focus:ring-opacity-50">
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="namaAyah" class="block text-sm font-medium text-gray-700">Nama Ayah</label>
-                        <input type="text" id="namaAyah" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-[#F9F5EF] focus:border-[#B7A490] focus:ring focus:ring-[#B7A490] focus:ring-opacity-50">
-                    </div>
-                    <div>
-                        <label for="namaIbu" class="block text-sm font-medium text-gray-700">Nama Ibu</label>
-                        <input type="text" id="namaIbu" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-[#F9F5EF] focus:border-[#B7A490] focus:ring focus:ring-[#B7A490] focus:ring-opacity-50">
-                    </div>
-                </div>
-                <div class="flex justify-end pt-4">
-                    <button type="submit" id="submitBtn" class="bg-[#A47F6A] text-white px-6 py-2 rounded-lg shadow-md hover:bg-[#B7A490] transition-colors duration-200">
-                        Simpan Siswa
-                    </button>
-                </div>
-            </form>
+        <div class="mb-4">
+            <label for="qrInput" class="block text-left text-gray-700 text-sm font-bold mb-2">
+                Teks atau URL:
+            </label>
+            <textarea
+                id="qrInput"
+                class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-600 focus:border-transparent transition duration-200 resize-y min-h-[100px]"
+                placeholder="Masukkan teks atau URL di sini..."
+            ></textarea>
         </div>
-    </div>
 
-    <!-- Modal untuk Konfirmasi Hapus/Naik Kelas -->
-    <div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-[#F0EBE3] rounded-xl shadow-2xl w-full max-w-sm p-6 relative fade-in text-center">
-            <p id="confirmationMessage" class="mb-6 text-lg font-medium text-[#5E503F]"></p>
-            <div class="flex justify-center space-x-4">
-                <button id="confirmActionBtn" class="bg-red-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-red-600 transition-colors duration-200">
-                    Ya
-                </button>
-                <button id="cancelActionBtn" class="bg-gray-400 text-white px-6 py-2 rounded-lg shadow-md hover:bg-gray-500 transition-colors duration-200">
-                    Batal
-                </button>
-            </div>
+        <!-- Pemilihan Ukuran QR Code -->
+        <div class="mb-4 text-left">
+            <label for="qrSizeSelect" class="block text-gray-700 text-sm font-bold mb-2">
+                Pilih Ukuran QR Code (piksel):
+            </label>
+            <select
+                id="qrSizeSelect"
+                class="w-full p-3 border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-blue-600 focus:border-transparent transition duration-200"
+            >
+                <option value="200">200x200 px (Standar)</option>
+                <option value="300">300x300 px</option>
+                <option value="400">400x400 px</option>
+                <option value="500">500x500 px</option>
+                <option value="750">750x750 px</option>
+                <option value="1000">1000x1000 px (Maksimal)</option>
+            </select>
         </div>
-    </div>
+        <!-- End Pemilihan Ukuran QR Code -->
 
-    <!-- Status Message Modal -->
-    <div id="statusModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-[#F0EBE3] rounded-xl shadow-2xl w-full max-w-sm p-6 relative fade-in text-center">
-            <p id="statusMessage" class="mb-6 text-lg font-medium text-[#5E503F]"></p>
-            <button id="closeStatusModalBtn" class="bg-gray-400 text-white px-6 py-2 rounded-lg shadow-md hover:bg-gray-500 transition-colors duration-200">
-                Tutup
+        <!-- Tombol Refresh -->
+        <button
+            id="refreshBtn"
+            class="w-full bg-blue-400 text-white py-2 px-6 rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-300 text-md font-semibold shadow-md mb-6"
+        >
+            Reset Aplikasi
+        </button>
+        <!-- End Tombol Refresh -->
+
+        <!-- Form untuk Gambar -->
+        <div class="mb-6 border border-gray-300 rounded-md p-4 bg-gray-50">
+            <label for="qrImageInput" class="block text-gray-700 text-sm font-bold mb-2 text-left">
+                Tambahkan Gambar ke QR Code (Opsional):
+            </label>
+            <input
+                type="file"
+                id="qrImageInput"
+                accept="image/*"
+                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            >
+            <div class="mt-4 flex justify-center">
+                <img id="qrImagePreview" src="" alt="Pratinjau Gambar QR Code" class="hidden max-w-[100px] max-h-[100px] rounded-md border border-gray-200 object-contain">
+            </div>
+            <button
+                id="clearImageBtn"
+                class="mt-3 px-3 py-1 bg-blue-200 text-blue-700 text-sm rounded-md hover:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+                Hapus Gambar
             </button>
         </div>
+        <!-- End Form untuk Gambar -->
+
+        <button
+            id="generateQrBtn"
+            class="w-full bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 transition duration-300 text-lg font-semibold shadow-md"
+        >
+            Buat QR Code
+        </button>
+
+        <div id="qrcode" class="mt-8 flex justify-center items-center p-4 border border-gray-200 rounded-lg bg-gray-50 min-h-[200px]">
+            <!-- QR Code akan dirender di sini -->
+            <p class="text-gray-500">QR Code Anda akan muncul di sini setelah dibuat.</p>
+        </div>
+
+        <!-- Ukuran File Estimasi -->
+        <div id="fileSizeDisplay" class="mt-4 text-gray-600 text-sm hidden">
+            <!-- Estimasi ukuran file akan ditampilkan di sini -->
+        </div>
+        <!-- End Ukuran File Estimasi -->
+
+        <div id="downloadButtons" class="mt-6 hidden flex flex-col sm:flex-row justify-center gap-4">
+            <button
+                id="downloadPngBtn"
+                class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 text-md font-semibold"
+            >
+                Unduh PNG
+            </button>
+            <button
+                id="downloadJpgBtn"
+                class="bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-md font-semibold"
+            >
+                Unduh JPG
+            </button>
+            <button
+                id="downloadPdfBtn"
+                class="bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 text-md font-semibold"
+            >
+                Unduh PDF
+            </button>
+        </div>
+
+        <div id="messageBox" class="hidden mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <span class="block sm:inline" id="messageText"></span>
+            <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" onclick="document.getElementById('messageBox').classList.add('hidden')">
+                <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Tutup</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.697l-2.651 2.652a1.2 1.2 0 1 1-1.697-1.697L8.303 10 5.651 7.348a1.2 1.2 0 1 1 1.697-1.697L10 8.303l2.651-2.652a1.2 1.2 0 0 1 1.697 1.697L11.697 10l2.652 2.651a1.2 1.2 0 0 1 0 1.698z"/></svg>
+            </span>
+        </div>
     </div>
 
-<script>
-let studentData = [];
-let archivedStudents = [];
-const logoUrl = 'https://iili.io/3b1SedN.png';
-let logoBase64 = null;
+    <script>
+        // Menginisialisasi variabel global yang disediakan oleh lingkungan Canvas
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
 
-const loginPage = document.getElementById('loginPage');
-const dashboardPage = document.getElementById('dashboardPage');
-const loginForm = document.getElementById('loginForm');
-const logoutBtn = document.getElementById('logoutBtn');
-const errorMessage = document.getElementById('errorMessage');
+        // Mendapatkan referensi ke elemen DOM
+        const qrInput = document.getElementById('qrInput');
+        const qrSizeSelect = document.getElementById('qrSizeSelect'); // New: Elemen pilihan ukuran
+        const generateQrBtn = document.getElementById('generateQrBtn');
+        const qrcodeDiv = document.getElementById('qrcode');
+        const messageBox = document.getElementById('messageBox');
+        const messageText = document.getElementById('messageText');
+        const downloadButtonsDiv = document.getElementById('downloadButtons');
+        const downloadPngBtn = document.getElementById('downloadPngBtn');
+        const downloadJpgBtn = document.getElementById('downloadJpgBtn');
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+        const qrImageInput = document.getElementById('qrImageInput');
+        const qrImagePreview = document.getElementById('qrImagePreview');
+        const clearImageBtn = document.getElementById('clearImageBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const fileSizeDisplay = document.getElementById('fileSizeDisplay');
 
-const searchInput = document.getElementById('searchInput');
-const classFilter = document.getElementById('classFilter');
-const genderFilter = document.getElementById('genderFilter');
-const studentTableBody = document.getElementById('studentTableBody');
-const archivedStudentTableBody = document.getElementById('archivedStudentTableBody');
-const totalStudentsEl = document.getElementById('totalStudents');
-const averageAgeEl = document.getElementById('averageAge');
-const chartsPanel = document.getElementById('chartsPanel');
-const addStudentBtn = document.getElementById('addStudentBtn');
-const promoteClassBtn = document.getElementById('promoteClassBtn');
-const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-const downloadArchivedPdfBtn = document.getElementById('downloadArchivedPdfBtn');
-const excelInput = document.getElementById('excelInput');
+        let qrcodeInstance = null; // Untuk menyimpan instance QR Code
+        let selectedImageDataUrl = null; // Untuk menyimpan DataURL gambar yang dipilih
 
-const addStudentModal = document.getElementById('addStudentModal');
-const closeModalBtn = document.getElementById('closeModalBtn');
-const addStudentForm = document.getElementById('addStudentForm');
-const modalTitle = document.getElementById('modalTitle');
-const submitBtn = document.getElementById('submitBtn');
-
-const confirmationModal = document.getElementById('confirmationModal');
-const confirmationMessage = document.getElementById('confirmationMessage');
-const confirmActionBtn = document.getElementById('confirmActionBtn');
-const cancelActionBtn = document.getElementById('cancelActionBtn');
-
-const statusModal = document.getElementById('statusModal');
-const statusMessage = document.getElementById('statusMessage');
-const closeStatusModalBtn = document.getElementById('closeStatusModalBtn');
-
-let genderChart, classChart;
-let currentAction = '';
-
-function showStatusMessage(message) {
-    statusMessage.textContent = message;
-    statusModal.classList.remove('hidden');
-}
-
-function closeStatusMessage() {
-    statusModal.classList.add('hidden');
-}
-
-// Fungsi untuk menyimpan data ke localStorage
-function saveDataToLocalStorage() {
-    try {
-        localStorage.setItem('studentData', JSON.stringify(studentData));
-        localStorage.setItem('archivedStudents', JSON.stringify(archivedStudents));
-        showStatusMessage('Data berhasil disimpan!');
-    } catch (error) {
-        console.error('Gagal menyimpan data ke localStorage:', error);
-        showStatusMessage('Gagal menyimpan data.');
-    }
-    setTimeout(closeStatusMessage, 1500);
-}
-
-function calculateAge(birthDate) {
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-        age--;
-    }
-    return age;
-}
-
-function renderStudentTable(data) {
-    studentTableBody.innerHTML = '';
-    if (data.length === 0) {
-        studentTableBody.innerHTML = `<tr><td colspan="13" class="text-center p-4">Data tidak ditemukan.</td></tr>`;
-        return;
-    }
-    data.forEach((student, index) => {
-        const row = document.createElement('tr');
-        row.className = 'border-b border-[#EAE0D5] hover:bg-[#F0EBE3]';
-        row.id = `student-row-${index}`;
-        row.innerHTML = `
-            <td class="p-3">${student.namaSiswa}</td>
-            <td class="p-3">${student.kelas}</td>
-            <td class="p-3">${student.nisnNis}</td>
-            <td class="p-3">${student.nikSiswa || '-'}</td>
-            <td class="p-3">${student.jenisKelamin}</td>
-            <td class="p-3">${student.tempatLahir || '-'}</td>
-            <td class="p-3">${student.tanggalLahir || '-'}</td>
-            <td class="p-3">${student.agama || '-'}</td>
-            <td class="p-3">${student.alamat || '-'}</td>
-            <td class="p-3">${student.kecamatan || '-'}</td>
-            <td class="p-3">${student.namaAyah || '-'}</td>
-            <td class="p-3">${student.namaIbu || '-'}</td>
-            <td class="p-3 text-center space-x-2">
-                <button onclick="handleEdit(${index})" class="bg-[#B7A490] text-white px-2 py-1 rounded-md text-sm hover:bg-[#A47F6A] transition-colors duration-200">Edit</button>
-                <button onclick="showConfirmation('delete', ${index})" class="bg-red-500 text-white px-2 py-1 rounded-md text-sm hover:bg-red-600 transition-colors duration-200">Hapus</button>
-            </td>
-        `;
-        studentTableBody.appendChild(row);
-    });
-}
-
-function renderArchivedStudentsTable(data) {
-    archivedStudentTableBody.innerHTML = '';
-    if (data.length === 0) {
-        archivedStudentTableBody.innerHTML = `<tr><td colspan="4" class="text-center p-4">Tidak ada siswa yang diarsipkan.</td></tr>`;
-        return;
-    }
-    data.forEach((student, index) => {
-        const row = document.createElement('tr');
-        row.className = 'border-b border-[#EAE0D5] hover:bg-[#F0EBE3]';
-        row.innerHTML = `
-            <td class="p-3">${student.namaSiswa}</td>
-            <td class="p-3">${student.nisnNis}</td>
-            <td class="p-3">${student.tanggalLulus}</td>
-            <td class="p-3 text-center">
-                <button onclick="showConfirmation('deleteArchived', ${index})" class="bg-red-500 text-white px-2 py-1 rounded-md text-sm hover:bg-red-600 transition-colors duration-200">Hapus</button>
-            </td>
-        `;
-        archivedStudentTableBody.appendChild(row);
-    });
-}
-
-function renderSummary(data) {
-    totalStudentsEl.textContent = data.length;
-    if (data.length > 0) {
-        const totalAge = data.reduce((sum, s) => sum + calculateAge(s.tanggalLahir), 0);
-        averageAgeEl.textContent = (totalAge / data.length).toFixed(1);
-    } else {
-        averageAgeEl.textContent = '-';
-    }
-}
-
-function handleEdit(studentIndex) {
-    const student = studentData[studentIndex];
-    if (!student) return;
-
-    modalTitle.textContent = 'Edit Data Siswa';
-    submitBtn.textContent = 'Simpan Perubahan';
-    addStudentForm.setAttribute('data-student-index', studentIndex);
-    
-    document.getElementById('namaSiswa').value = student.namaSiswa;
-    document.getElementById('kelas').value = student.kelas;
-    document.getElementById('nisnNis').value = student.nisnNis;
-    document.getElementById('nikSiswa').value = student.nikSiswa;
-    document.getElementById('tempatLahir').value = student.tempatLahir;
-    document.getElementById('tanggalLahir').value = student.tanggalLahir;
-    document.getElementById('jenisKelamin').value = student.jenisKelamin;
-    document.getElementById('agama').value = student.agama;
-    document.getElementById('alamat').value = student.alamat;
-    document.getElementById('kecamatan').value = student.kecamatan;
-    document.getElementById('namaAyah').value = student.namaAyah;
-    document.getElementById('namaIbu').value = student.namaIbu;
-    
-    addStudentModal.classList.remove('hidden');
-}
-
-function showConfirmation(action, index = null) {
-    currentAction = action;
-    confirmActionBtn.setAttribute('data-index', index);
-    if (action === 'delete') {
-        const student = studentData[index];
-        confirmationMessage.textContent = `Apakah Anda yakin ingin menghapus data siswa bernama ${student.namaSiswa}?`;
-        confirmActionBtn.textContent = 'Ya, Hapus';
-    } else if (action === 'deleteArchived') {
-        const student = archivedStudents[index];
-        confirmationMessage.textContent = `Apakah Anda yakin ingin menghapus arsip siswa bernama ${student.namaSiswa}?`;
-        confirmActionBtn.textContent = 'Ya, Hapus Arsip';
-    } else if (action === 'promote') {
-        confirmationMessage.textContent = `Apakah Anda yakin ingin menaikkan semua siswa ke kelas berikutnya? Siswa kelas 6 akan diarsipkan sebagai lulus.`;
-        confirmActionBtn.textContent = 'Ya, Proses';
-    }
-    confirmationModal.classList.remove('hidden');
-}
-
-async function handleConfirmedAction() {
-    confirmationModal.classList.add('hidden');
-    const index = parseInt(confirmActionBtn.getAttribute('data-index'));
-
-    if (currentAction === 'delete') {
-        if (index > -1) {
-            studentData.splice(index, 1);
-            applyFilters();
-            saveDataToLocalStorage();
+        // Fungsi untuk menampilkan pesan error/informasi
+        function showMessage(message, type = 'error') {
+            messageText.textContent = message;
+            messageBox.classList.remove('hidden');
+            if (type === 'error') {
+                messageBox.classList.remove('bg-blue-100', 'border-blue-400', 'text-blue-700', 'bg-green-100', 'border-green-400', 'text-green-700'); // Hapus warna sukses/info
+                messageBox.classList.add('bg-red-100', 'border-red-400', 'text-red-700'); // Tambahkan warna error
+            } else { // 'success' or 'info'
+                messageBox.classList.remove('bg-red-100', 'border-red-400', 'text-red-700'); // Hapus warna error
+                messageBox.classList.add('bg-blue-100', 'border-blue-400', 'text-blue-700'); // Gunakan warna biru untuk sukses/info
+            }
         }
-    } else if (currentAction === 'deleteArchived') {
-        if (index > -1) {
-            archivedStudents.splice(index, 1);
-            renderArchivedStudentsTable(archivedStudents);
-            saveDataToLocalStorage();
-        }
-    } else if (currentAction === 'promote') {
-        const studentsToArchive = [];
-        const promotedStudents = [];
-        const today = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
 
-        studentData.forEach(student => {
-            const gradeMatch = student.kelas.match(/(\d+)/);
-            if (gradeMatch) {
-                const currentGrade = parseInt(gradeMatch[1]);
-                if (currentGrade < 6) {
-                    const nextGrade = currentGrade + 1;
-                    student.kelas = `Kelas ${nextGrade}`;
-                    promotedStudents.push(student);
-                } else if (currentGrade === 6) {
-                    studentsToArchive.push({
-                        namaSiswa: student.namaSiswa,
-                        nisnNis: student.nisnNis,
-                        tanggalLulus: today
-                    });
+        /**
+         * Fungsi untuk mengunduh gambar dari canvas dengan padding.
+         * @param {HTMLCanvasElement} originalCanvas - Canvas asli yang berisi QR Code.
+         * @param {string} filename - Nama file untuk diunduh.
+         * @param {string} mimeType - Tipe MIME gambar (e.g., 'image/png', 'image/jpeg').
+         * @param {number} [quality=0.9] - Kualitas gambar untuk JPEG (0-1).
+         */
+        function downloadImageWithPadding(originalCanvas, filename, mimeType, quality = 0.9) {
+            const padding = 20; // Padding dalam piksel
+            const newWidth = originalCanvas.width + 2 * padding;
+            const newHeight = originalCanvas.height + 2 * padding;
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = newWidth;
+            tempCanvas.height = newHeight;
+            const ctx = tempCanvas.getContext('2d');
+
+            // Isi latar belakang dengan putih
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, newWidth, newHeight);
+
+            // Gambar QR Code ke tengah canvas baru dengan padding
+            ctx.drawImage(originalCanvas, padding, padding, originalCanvas.width, originalCanvas.height);
+
+            const dataUrl = mimeType === 'image/jpeg' ? tempCanvas.toDataURL(mimeType, quality) : tempCanvas.toDataURL(mimeType);
+
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        /**
+         * Fungsi untuk menggambar gambar ke tengah QR Code canvas.
+         * @param {HTMLCanvasElement} canvas - Canvas QR Code.
+         * @param {string} imageDataUrl - DataURL dari gambar yang akan digambar.
+         */
+        function drawImageOnQrCode(canvas, imageDataUrl) {
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.onload = () => {
+                const qrSize = canvas.width;
+                const imgSize = qrSize * 0.25; // Gambar akan 25% dari ukuran QR Code
+                const x = (qrSize - imgSize) / 2;
+                const y = (qrSize - imgSize) / 2;
+
+                // Hapus area di mana gambar akan ditempatkan untuk menghindari tumpang tindih piksel QR code yang tidak diinginkan
+                // Ini penting untuk menjaga agar QR code tetap bisa dipindai
+                ctx.clearRect(x, y, imgSize, imgSize);
+                // Gambar gambar
+                ctx.drawImage(img, x, y, imgSize, imgSize);
+            };
+            img.src = imageDataUrl;
+        }
+
+        /**
+         * Fungsi untuk memperbarui tampilan ukuran file estimasi.
+         * @param {HTMLCanvasElement} canvas - Canvas QR Code.
+         */
+        function updateFileSizeDisplay(canvas) {
+            if (!canvas) {
+                fileSizeDisplay.textContent = '';
+                fileSizeDisplay.classList.add('hidden');
+                return;
+            }
+
+            // Dapatkan ukuran untuk PNG (kualitas maksimal yang direferensikan)
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    const sizeInBytes = blob.size;
+                    let sizeText = '';
+                    if (sizeInBytes < 1024) {
+                        sizeText = `${sizeInBytes} bytes`;
+                    } else if (sizeInBytes < 1024 * 1024) {
+                        sizeText = `${(sizeInBytes / 1024).toFixed(2)} KB`;
+                    } else {
+                        sizeText = `${(sizeInBytes / (1024 * 1024)).toFixed(2)} MB`;
+                    }
+                    fileSizeDisplay.textContent = `Ukuran Estimasi PNG: ${sizeText}`;
+                    fileSizeDisplay.classList.remove('hidden');
+                } else {
+                    fileSizeDisplay.textContent = '';
+                    fileSizeDisplay.classList.add('hidden');
+                    console.error('Gagal membuat blob dari canvas.');
+                }
+            }, 'image/png'); // Hitung ukuran untuk PNG
+        }
+
+        // Fungsi untuk mereset aplikasi ke kondisi awal
+        function resetApplication() {
+            qrInput.value = ''; // Kosongkan input teks
+            qrSizeSelect.value = '200'; // Reset pilihan ukuran ke default
+
+            // Hapus gambar yang dipilih
+            qrImageInput.value = '';
+            selectedImageDataUrl = null;
+            qrImagePreview.src = '';
+            qrImagePreview.classList.add('hidden');
+
+            // Reset tampilan QR Code
+            qrcodeDiv.innerHTML = '<p class="text-gray-500">QR Code Anda akan muncul di sini setelah dibuat.</p>';
+            qrcodeDiv.classList.add('min-h-[200px]');
+            qrcodeDiv.classList.remove('p-0');
+            qrcodeInstance = null; // Reset instance QR Code
+
+            // Sembunyikan tombol unduh
+            downloadButtonsDiv.classList.add('hidden');
+
+            // Sembunyikan dan kosongkan tampilan ukuran file
+            fileSizeDisplay.textContent = '';
+            fileSizeDisplay.classList.add('hidden');
+
+            // Sembunyikan pesan
+            messageBox.classList.add('hidden');
+        }
+
+
+        // Event listener untuk tombol "Buat QR Code"
+        generateQrBtn.addEventListener('click', () => {
+            const data = qrInput.value.trim();
+            const qrSize = parseInt(qrSizeSelect.value); // Ambil ukuran yang dipilih
+
+            messageBox.classList.add('hidden'); // Sembunyikan pesan
+
+            if (data) {
+                qrcodeDiv.innerHTML = ''; // Hapus QR Code sebelumnya
+                qrcodeDiv.classList.remove('min-h-[200px]');
+                qrcodeDiv.classList.add('p-0');
+
+                // Buat instance QR Code baru dengan ukuran yang dipilih
+                qrcodeInstance = new QRCode(qrcodeDiv, {
+                    text: data,
+                    width: qrSize,  // Gunakan ukuran yang dipilih
+                    height: qrSize, // Gunakan ukuran yang dipilih
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+
+                // Tunggu sebentar agar QR Code benar-benar dirender ke canvas
+                setTimeout(() => {
+                    const qrCanvas = qrcodeDiv.querySelector('canvas');
+                    if (qrCanvas) {
+                        if (selectedImageDataUrl) {
+                            drawImageOnQrCode(qrCanvas, selectedImageDataUrl);
+                        }
+                        updateFileSizeDisplay(qrCanvas); // Perbarui ukuran file
+                    }
+                }, 100); // Penundaan singkat
+
+
+                downloadButtonsDiv.classList.remove('hidden'); // Tampilkan tombol unduh
+                showMessage('QR Code berhasil dibuat!', 'success');
+            } else {
+                qrcodeDiv.innerHTML = '<p class="text-gray-500">QR Code Anda akan muncul di sini setelah dibuat.</p>';
+                qrcodeDiv.classList.add('min-h-[200px]');
+                qrcodeDiv.classList.remove('p-0');
+                downloadButtonsDiv.classList.add('hidden'); // Sembunyikan tombol unduh jika input kosong
+                fileSizeDisplay.classList.add('hidden'); // Sembunyikan ukuran file
+                showMessage('Masukkan teks atau URL untuk membuat QR Code.', 'error');
+            }
+        });
+
+        // Event listener untuk input gambar
+        qrImageInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    selectedImageDataUrl = e.target.result;
+                    qrImagePreview.src = selectedImageDataUrl;
+                    qrImagePreview.classList.remove('hidden');
+                    // Jika QR Code sudah ada, buat ulang dengan gambar
+                    if (qrcodeDiv.querySelector('canvas') && qrInput.value.trim() !== '') {
+                        generateQrBtn.click(); // Panggil ulang pembuatan QR Code
+                    }
+                };
+                reader.readAsDataURL(file);
+            } else {
+                selectedImageDataUrl = null;
+                qrImagePreview.src = '';
+                qrImagePreview.classList.add('hidden');
+                // Jika QR Code sudah ada, buat ulang tanpa gambar
+                if (qrcodeDiv.querySelector('canvas') && qrInput.value.trim() !== '') {
+                    generateQrBtn.click(); // Panggil ulang pembuatan QR Code
                 }
             }
         });
-        
-        archivedStudents = [...archivedStudents, ...studentsToArchive];
-        studentData = promotedStudents;
-        
-        updateClassFilterOptions();
-        applyFilters();
-        renderArchivedStudentsTable(archivedStudents);
-        saveDataToLocalStorage();
-    }
-}
 
-function renderCharts(data) {
-    const genderCtx = document.getElementById('genderChart').getContext('2d');
-    const classCtx = document.getElementById('classChart').getContext('2d');
-
-    const genderCounts = data.reduce((acc, student) => {
-        acc[student.jenisKelamin] = (acc[student.jenisKelamin] || 0) + 1;
-        return acc;
-    }, {});
-    
-    const genderColors = {
-        'Laki-laki': '#EF4444', 
-        'Perempuan': '#3B82F6'
-    };
-
-    const classCounts = data.reduce((acc, student) => {
-        acc[student.kelas] = (acc[student.kelas] || 0) + 1;
-        return acc;
-    }, {});
-    const sortedClasses = Object.keys(classCounts).sort((a, b) => {
-        const numA = parseInt(a.match(/\d+/) || 0);
-        const numB = parseInt(b.match(/\d+/) || 0);
-        if (numA === numB) {
-            return a.localeCompare(b);
-        }
-        return numA - numB;
-    });
-    const sortedClassData = sortedClasses.map(cls => classCounts[cls]);
-
-    // Array warna baru untuk grafik bar
-    const barColors = [
-        '#A47F6A', 
-        '#3D352E', 
-        '#F9E79F', 
-        '#B7A490', 
-        '#EAE0D5', 
-        '#5E503F',
-        '#C5D6C1'
-    ];
-
-    if (genderChart) genderChart.destroy();
-    genderChart = new Chart(genderCtx, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(genderCounts),
-            datasets: [{
-                data: Object.values(genderCounts),
-                backgroundColor: Object.keys(genderCounts).map(gender => genderColors[gender]),
-                borderColor: '#F0EBE3',
-                borderWidth: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
+        // Event listener untuk tombol Hapus Gambar
+        clearImageBtn.addEventListener('click', () => {
+            qrImageInput.value = ''; // Hapus file dari input
+            selectedImageDataUrl = null;
+            qrImagePreview.src = '';
+            qrImagePreview.classList.add('hidden');
+            // Jika QR Code sudah ada, buat ulang tanpa gambar
+            if (qrcodeDiv.querySelector('canvas') && qrInput.value.trim() !== '') {
+                generateQrBtn.click(); // Panggil ulang pembuatan QR Code
             }
-        }
-    });
+        });
 
-    if (classChart) classChart.destroy();
-    classChart = new Chart(classCtx, {
-        type: 'bar',
-        data: {
-            labels: sortedClasses,
-            datasets: [{
-                label: 'Jumlah Siswa',
-                data: sortedClassData,
-                backgroundColor: barColors.slice(0, sortedClasses.length), // Menggunakan array warna baru
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true, ticks: { stepSize: 1 } }
-            },
-            plugins: {
-                legend: { display: false }
+        // Event listener untuk tombol Unduh PNG
+        downloadPngBtn.addEventListener('click', () => {
+            const canvas = qrcodeDiv.querySelector('canvas');
+            if (canvas) {
+                downloadImageWithPadding(canvas, 'qrcode.png', 'image/png');
+            } else {
+                showMessage('Tidak ada QR Code yang bisa diunduh. Harap buat QR Code terlebih dahulu.', 'error');
             }
-        }
-    });
-}
+        });
 
-function applyFilters() {
-    const searchTerm = searchInput.value.toLowerCase();
-    const selectedClass = classFilter.value;
-    const selectedGender = genderFilter.value;
-
-    const filteredData = studentData.filter(student => {
-        const nameMatch = student.namaSiswa.toLowerCase().includes(searchTerm);
-        const nisnMatch = student.nisnNis.toLowerCase().includes(searchTerm);
-        const classMatch = selectedClass ? student.kelas === selectedClass : true;
-        const genderMatch = selectedGender ? student.jenisKelamin === selectedGender : true;
-        return (nameMatch || nisnMatch) && classMatch && genderMatch;
-    });
-
-    renderStudentTable(filteredData);
-    renderSummary(filteredData);
-    renderCharts(filteredData);
-}
-
-function updateClassFilterOptions() {
-    const uniqueClasses = [...new Set(studentData.map(s => s.kelas))].sort((a, b) => {
-        const numA = parseInt(a.match(/\d+/) || 0);
-        const numB = parseInt(b.match(/\d+/) || 0);
-        if (numA === numB) {
-            return a.localeCompare(b);
-        }
-        return numA - numB;
-    });
-
-    classFilter.innerHTML = '<option value="">Semua Kelas</option>';
-    uniqueClasses.forEach(cls => {
-        const option = document.createElement('option');
-        option.value = cls;
-        option.textContent = cls;
-        classFilter.appendChild(option);
-    });
-}
-
-function initialize() {
-    // Muat data dari localStorage saat halaman dimuat
-    const storedData = localStorage.getItem('studentData');
-    if (storedData) {
-        try {
-            studentData = JSON.parse(storedData);
-        } catch (e) {
-            console.error("Failed to parse student data from localStorage", e);
-            studentData = [];
-        }
-    } else {
-        studentData = [];
-    }
-
-    const storedArchivedData = localStorage.getItem('archivedStudents');
-    if (storedArchivedData) {
-        try {
-            archivedStudents = JSON.parse(storedArchivedData);
-        } catch (e) {
-            console.error("Failed to parse archived students data from localStorage", e);
-            archivedStudents = [];
-        }
-    } else {
-        archivedStudents = [];
-    }
-
-    // Load logo as base64
-    fetch(logoUrl)
-        .then(response => response.blob())
-        .then(blob => {
-            const reader = new FileReader();
-            reader.onloadend = function() {
-                logoBase64 = reader.result;
-            };
-            reader.readAsDataURL(blob);
-        })
-        .catch(err => console.error("Failed to load logo:", err));
-
-    updateClassFilterOptions(); 
-    applyFilters(); 
-    renderArchivedStudentsTable(archivedStudents);
-    
-    searchInput.addEventListener('input', applyFilters);
-    classFilter.addEventListener('change', applyFilters);
-    genderFilter.addEventListener('change', applyFilters);
-    
-    // Perbaikan pada event listener untuk impor Excel
-    excelInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) {
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const data = new Uint8Array(event.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const sheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[sheetName];
-            
-            // Mengubah data worksheet menjadi format JSON
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-            
-            // PENTING: Mendefinisikan header yang diharapkan dan mengubahnya menjadi objek dengan kunci yang sesuai
-            const expectedHeaders = {
-                'nama': 'namaSiswa',
-                'kelas': 'kelas',
-                'nisn/nis': 'nisnNis',
-                'nik': 'nikSiswa',
-                'jenis kelamin': 'jenisKelamin',
-                'tempat lahir': 'tempatLahir',
-                'tanggal lahir': 'tanggalLahir',
-                'agama': 'agama',
-                'alamat': 'alamat',
-                'kecamatan': 'kecamatan',
-                'nama ayah': 'namaAyah',
-                'nama ibu': 'namaIbu'
-            };
-
-            if (!jsonData || jsonData.length === 0) {
-                showStatusMessage('Gagal mengimpor: File Excel kosong.');
-                return;
+        // Event listener untuk tombol Unduh JPG
+        downloadJpgBtn.addEventListener('click', () => {
+            const canvas = qrcodeDiv.querySelector('canvas');
+            if (canvas) {
+                downloadImageWithPadding(canvas, 'qrcode.jpg', 'image/jpeg', 0.9);
+            } else {
+                showMessage('Tidak ada QR Code yang bisa diunduh. Harap buat QR Code terlebih dahulu.', 'error');
             }
+        });
 
-            const headers = jsonData[0].map(h => h.toLowerCase().trim());
-            const requiredHeaders = Object.keys(expectedHeaders);
-            const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+        // Event listener untuk tombol Unduh PDF
+        downloadPdfBtn.addEventListener('click', () => {
+            const canvas = qrcodeDiv.querySelector('canvas');
+            if (canvas) {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                // Gunakan canvas dengan padding untuk PDF juga
+                const padding = 20;
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width + 2 * padding;
+                tempCanvas.height = canvas.height + 2 * padding;
+                const ctx = tempCanvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                ctx.drawImage(canvas, padding, padding, canvas.width, canvas.height);
 
-            if (missingHeaders.length > 0) {
-                showStatusMessage(`Gagal mengimpor: Header Excel tidak valid. Header yang hilang: ${missingHeaders.map(h => `'${h}'`).join(', ')}`);
-                return;
+
+                const imgData = tempCanvas.toDataURL('image/png');
+                const imgWidth = 60; // Lebar gambar di PDF (sesuaikan jika perlu, lebih besar dari 50 agar lebih jelas)
+                const imgHeight = (tempCanvas.height * imgWidth) / tempCanvas.width; // Jaga rasio aspek
+
+                doc.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight); // Posisi (x, y), lebar, tinggi
+                doc.save('qrcode.pdf');
+            } else {
+                showMessage('Tidak ada QR Code yang bisa diunduh. Harap buat QR Code terlebih dahulu.', 'error');
             }
+        });
 
-            const newStudents = jsonData.slice(1).map(row => {
-                const student = {};
-                headers.forEach((header, index) => {
-                    const key = expectedHeaders[header];
-                    if (key) {
-                        student[key] = row[index];
-                    }
-                });
-                student.id = Date.now() + Math.random();
-                return student;
-            });
+        // Event listener untuk tombol Refresh
+        refreshBtn.addEventListener('click', resetApplication);
 
-            // Memastikan data yang diimpor tidak mengandung baris kosong
-            const validStudents = newStudents.filter(student => student.namaSiswa);
-
-            if (validStudents.length === 0) {
-                showStatusMessage('Gagal mengimpor: Tidak ada data siswa yang valid ditemukan setelah header.');
-                return;
-            }
-
-            studentData = [...studentData, ...validStudents];
-            
-            updateClassFilterOptions();
-            applyFilters();
-            saveDataToLocalStorage();
-            showStatusMessage('Data dari Excel berhasil diimpor!');
+        // Event listener untuk memastikan tampilan awal yang benar
+        window.onload = function() {
+            resetApplication();
         };
-        reader.readAsArrayBuffer(file);
-    });
-    
-    addStudentBtn.addEventListener('click', () => {
-        modalTitle.textContent = 'Formulir Data Siswa Baru';
-        submitBtn.textContent = 'Simpan Siswa';
-        addStudentForm.removeAttribute('data-student-index');
-        addStudentForm.reset();
-        addStudentModal.classList.remove('hidden');
-    });
-
-    promoteClassBtn.addEventListener('click', () => {
-        showConfirmation('promote');
-    });
-
-    closeModalBtn.addEventListener('click', () => {
-        addStudentModal.classList.add('hidden');
-        addStudentForm.reset();
-    });
-
-    closeStatusModalBtn.addEventListener('click', closeStatusMessage);
-
-    addStudentModal.addEventListener('click', (e) => {
-        if (e.target.id === 'addStudentModal') {
-            addStudentModal.classList.add('hidden');
-            addStudentForm.reset();
-        }
-    });
-    
-    confirmActionBtn.addEventListener('click', handleConfirmedAction);
-    cancelActionBtn.addEventListener('click', () => {
-        confirmationModal.classList.add('hidden');
-    });
-    
-    downloadPdfBtn.addEventListener('click', async () => {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({
-            orientation: 'l',
-            unit: 'pt',
-            format: 'legal' 
-        });
-
-        // Add logo if available, smaller size
-        if (logoBase64) {
-            const imgWidth = 60;
-            const imgHeight = 60;
-            const margin = 20;
-            const xPos = (doc.internal.pageSize.getWidth() / 2) - (imgWidth / 2); // Pusatkan gambar
-            const yPos = 20;
-            doc.addImage(logoBase64, 'PNG', xPos, yPos, imgWidth, imgHeight);
-        }
-
-        // Add title below logo
-        const title = "DATA SISWA UPT SDN 22 TANAH KERAS";
-        doc.setFontSize(14);
-        const titleWidth = doc.getStringUnitWidth(title) * doc.internal.getFontSize() / doc.internal.scaleFactor;
-        const titleX = (doc.internal.pageSize.getWidth() - titleWidth) / 2;
-        doc.text(title, titleX, 90);
-        doc.setFontSize(10); // Atur ulang ukuran font ke default
-
-        const headers = [
-            ['Nama', 'Kelas', 'NISN/NIS', 'NIK', 'Jenis Kelamin', 'Tempat Lahir', 'Tanggal Lahir', 'Agama', 'Alamat', 'Kecamatan', 'Nama Ayah', 'Nama Ibu']
-        ];
-        
-        const data = studentData.map(student => [
-            student.namaSiswa,
-            student.kelas,
-            student.nisnNis,
-            student.nikSiswa || '-',
-            student.jenisKelamin,
-            student.tempatLahir || '-',
-            student.tanggalLahir || '-',
-            student.agama || '-',
-            student.alamat || '-',
-            student.kecamatan || '-',
-            student.namaAyah || '-',
-            student.namaIbu || '-'
-        ]);
-
-        doc.autoTable({
-            head: headers,
-            body: data,
-            startY: 120, 
-            styles: {
-                fontSize: 8,
-                cellPadding: 4,
-            },
-            headStyles: {
-                fillColor: [234, 224, 213], 
-                textColor: [61, 53, 46],
-                fontStyle: 'bold',
-            },
-            theme: 'striped',
-            alternateRowStyles: {
-                fillColor: [249, 245, 239], 
-            }
-        });
-
-        doc.save('Data_Siswa.pdf');
-    });
-
-    downloadArchivedPdfBtn.addEventListener('click', async () => {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({
-            orientation: 'p',
-            unit: 'pt',
-            format: 'A4'
-        });
-
-        // Add logo if available, smaller size
-        if (logoBase64) {
-            const imgWidth = 60;
-            const imgHeight = 60;
-            const margin = 20;
-            const xPos = (doc.internal.pageSize.getWidth() / 2) - (imgWidth / 2); // Pusatkan gambar
-            const yPos = 20;
-            doc.addImage(logoBase64, 'PNG', xPos, yPos, imgWidth, imgHeight);
-        }
-
-        // Add title below logo
-        const title = "ARSIP KELULUSAN UPT SDN 22 TANAH KERAS";
-        doc.setFontSize(14);
-        const titleWidth = doc.getStringUnitWidth(title) * doc.internal.getFontSize() / doc.internal.scaleFactor;
-        const titleX = (doc.internal.pageSize.getWidth() - titleWidth) / 2;
-        doc.text(title, titleX, 90);
-        doc.setFontSize(10);
-
-        const headers = [
-            ['Nama', 'NISN/NIS', 'Tanggal Lulus']
-        ];
-        
-        const data = archivedStudents.map(student => [
-            student.namaSiswa,
-            student.nisnNis,
-            student.tanggalLulus
-        ]);
-
-        doc.autoTable({
-            head: headers,
-            body: data,
-            startY: 120,
-            styles: {
-                fontSize: 10,
-                cellPadding: 6,
-            },
-            headStyles: {
-                fillColor: [234, 224, 213], 
-                textColor: [61, 53, 46],
-                fontStyle: 'bold',
-            },
-            theme: 'striped',
-            alternateRowStyles: {
-                fillColor: [249, 245, 239], 
-            }
-        });
-
-        doc.save('Arsip_Siswa_Lulus.pdf');
-    });
-
-    addStudentForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const studentIndex = addStudentForm.getAttribute('data-student-index');
-        const formData = {
-            namaSiswa: document.getElementById('namaSiswa').value,
-            kelas: document.getElementById('kelas').value,
-            nisnNis: document.getElementById('nisnNis').value,
-            nikSiswa: document.getElementById('nikSiswa').value,
-            tempatLahir: document.getElementById('tempatLahir').value,
-            tanggalLahir: document.getElementById('tanggalLahir').value,
-            jenisKelamin: document.getElementById('jenisKelamin').value,
-            agama: document.getElementById('agama').value,
-            alamat: document.getElementById('alamat').value,
-            kecamatan: document.getElementById('kecamatan').value,
-            namaAyah: document.getElementById('namaAyah').value,
-            namaIbu: document.getElementById('namaIbu').value,
-            pekerjaanAyah: '',
-            pekerjaanIbu: '',
-            noHp: ''
-        };
-
-        if (studentIndex !== null) { // Perbaikan: Cek jika studentIndex tidak null
-            studentData[studentIndex] = { ...studentData[studentIndex], ...formData };
-        } else {
-            const newStudent = { id: Date.now(), ...formData };
-            studentData.push(newStudent);
-        }
-        
-        addStudentModal.classList.add('hidden');
-        addStudentForm.reset();
-        
-        // --- Perbaikan di sini: reset filter setelah data diubah ---
-        searchInput.value = '';
-        classFilter.value = '';
-        genderFilter.value = '';
-        // -------------------------------------------------------------
-
-        updateClassFilterOptions();
-        applyFilters();
-        saveDataToLocalStorage();
-    });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Clear login form fields on page load
-    document.getElementById('username').value = '';
-    document.getElementById('password').value = '';
-    
-    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-    if (isAuthenticated) {
-        loginPage.classList.add('hidden');
-        dashboardPage.classList.remove('hidden');
-        initialize();
-    } else {
-        loginPage.classList.remove('hidden');
-        dashboardPage.classList.add('hidden');
-    }
-
-    loginForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const usernameInput = document.getElementById('username').value;
-        const passwordInput = document.getElementById('password').value;
-        
-        if (usernameInput === 'Admin' && passwordInput === '12345') {
-            localStorage.setItem('isAuthenticated', 'true');
-            loginPage.classList.add('hidden');
-            dashboardPage.classList.remove('hidden');
-            initialize();
-        } else {
-            errorMessage.classList.remove('hidden');
-        }
-    });
-
-    logoutBtn.addEventListener('click', () => {
-        localStorage.removeItem('isAuthenticated');
-        dashboardPage.classList.add('hidden');
-        loginPage.classList.remove('hidden');
-        document.getElementById('username').value = '';
-        document.getElementById('password').value = '';
-    });
-});
-</script>
+    </script>
 </body>
 </html>
-
