@@ -31,8 +31,8 @@
     <!-- SYNC OVERLAY -->
     <div id="sync-overlay" class="hidden fixed inset-0 z-[200] bg-blue-900/90 backdrop-blur-md flex flex-col items-center justify-center text-white text-center p-6">
         <i class="fas fa-sync sync-loader text-6xl mb-6"></i>
-        <h2 id="sync-text" class="text-2xl font-black tracking-widest uppercase mb-2">Singkronisasi</h2>
-        <p id="sync-desc" class="opacity-80 max-sm">Memproses data.</p>
+        <h2 id="sync-text" class="text-2xl font-black tracking-widest uppercase mb-2">Sinkronisasi</h2>
+        <p id="sync-desc" class="opacity-80 max-sm">Sedang Memproses data.</p>
     </div>
 
     <!-- LOGIN PAGE -->
@@ -41,7 +41,7 @@
             <div class="text-center mb-10">
                 <img src="https://iili.io/BUTM45l.png" alt="Logo Aplikasi" class="w-32 mx-auto mb-6 drop-shadow-lg">
                 <h2 class="text-3xl font-black text-slate-800 tracking-tight text-center">E-RAPORT</h2>
-                <p class="text-slate-500 font-medium text-center uppercase text-xs tracking-widest">SDN 22 TANAH KERAS</p>
+                <p class="text-slate-500 font-medium text-center uppercase text-xs tracking-widest">UPT SDN 22 TANAH KERAS</p>
             </div>
             <form id="loginForm" class="space-y-6">
                 <div class="space-y-1">
@@ -61,7 +61,7 @@
                 <div class="h-[1px] flex-1 bg-slate-100"></div>
                 <div class="flex items-center space-x-2">
                     <i class="fas fa-shield-alt text-xs"></i>
-                    <span class="text-[9px] font-black uppercase tracking-widest">Fauzi, S.Hum</span>
+                    <span class="text-[9px] font-black uppercase tracking-widest">Fauzi</span>
                 </div>
                 <div class="h-[1px] flex-1 bg-slate-100"></div>
             </div>
@@ -77,7 +77,7 @@
             </div>
             <nav class="flex-1 mt-6 px-4 space-y-1 overflow-y-auto">
                 <button onclick="fetchFromCloud()" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-600 text-white mb-4 hover:bg-emerald-700 transition shadow-lg">
-                    <i class="fas fa-sync w-5"></i><span class="font-bold">Tarik Data</span>
+                    <i class="fas fa-sync w-5"></i><span class="font-bold">Tarik Data Terbaru</span>
                 </button>
 
                 <button onclick="showPage('beranda')" id="btn-beranda" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-700 text-white transition">
@@ -155,7 +155,7 @@
                 <section id="page-beranda" class="space-y-6">
                     <div class="bg-gradient-to-r from-blue-700 to-blue-500 rounded-3xl p-10 text-white shadow-2xl relative overflow-hidden">
                         <div class="relative z-10">
-                            <h2 class="text-4xl font-black mb-2 tracking-tight">E-Raport Digital👋</h2>
+                            <h2 class="text-4xl font-black mb-2 tracking-tight">E-Raport Digital 👋</h2>
                             <p class="text-blue-100 max-w-2xl text-lg font-medium">Sistem Kalkulasi Nilai & Peringkat Otomatis Aktif. Leger nilai kini dapat dicetak untuk arsip fisik sekolah.</p>
                         </div>
                     </div>
@@ -547,7 +547,7 @@
                                 <input type="text" id="kop_alamat" placeholder="Alamat Lengkap" class="px-6 py-4 border-2 rounded-2xl font-bold md:col-span-2 text-slate-700">
                                 <input type="text" id="kop_email" placeholder="Email" class="px-6 py-4 border-2 rounded-2xl font-bold text-slate-700">
                                 <input type="text" id="kop_web" placeholder="Website" class="px-6 py-4 border-2 rounded-2xl font-bold text-slate-700">
-                                <button type="button" onclick="saveKopSurat()" class="md:col-span-2 py-5 bg-blue-800 text-white rounded-2xl font-black text-xl shadow-xl">UPDATE KOP</button>
+                                <button type="button" onclick="saveKopSurat()" class="md:col-span-2 py-5 bg-blue-800 text-white rounded-2xl font-black text-xl shadow-xl">UPDATE KOP KE CLOUD</button>
                             </form>
                         </div>
                     </section>
@@ -1106,9 +1106,20 @@
                     color: black; 
                     position: relative; 
                     min-height: calc(100vh - ${mt}mm - ${mb}mm); 
-                    padding-bottom: 50px; /* Tambahkan ruang aman agar isi tidak menempel footer */
+                    padding-bottom: 50px; 
+                    z-index: 1;
                 }
-                table { border-collapse: collapse; width: 100%; }
+                .watermark {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 400px;
+                    opacity: 0.08; /* Sangat transparan agar tulisan jelas */
+                    z-index: -1;
+                    pointer-events: none;
+                }
+                table { border-collapse: collapse; width: 100%; position: relative; z-index: 2; }
                 th, td { border: 1px solid black; padding: 5px; }
                 .no-border, .no-border td, .no-border th { border: none !important; }
                 .text-center { text-align: center; }
@@ -1127,7 +1138,7 @@
                 }
                 .rapor-footer {
                     position: absolute;
-                    bottom: -5px; /* Menurunkan footnote agar lebih ke bawah */
+                    bottom: -5px; 
                     left: 0;
                     width: 100%;
                     font-size: 7.5pt;
@@ -1161,6 +1172,9 @@
             });
 
             return `<div class="rapor-page">
+                <!-- Watermark Logo -->
+                <img src="https://iili.io/Bg20Nvn.png" class="watermark">
+                
                 <div style="display:flex;align-items:center;padding-bottom:5px" class="no-border">
                     <img src="https://iili.io/3QUsMEx.png" style="width:70px;margin-right:20px">
                     <div style="text-align:center;flex:1">
