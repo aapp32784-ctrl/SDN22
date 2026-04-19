@@ -629,7 +629,7 @@
 
         async function fetchFromCloud() {
             if (!SCRIPT_URL) return false;
-            document.getElementById('sync-text').innerText = "SINKRONISASI CLOUD...";
+            document.getElementById('sync-text').innerText = "SINKRONISASI";
             document.getElementById('sync-overlay').classList.remove('hidden');
             try {
                 const res = await fetch(SCRIPT_URL + "?action=fetchAll");
@@ -1284,7 +1284,7 @@
                 </div>
                 <div style="text-align:center;margin-top:10px;margin-bottom:15px" class="no-border">Mengetahui,<br>Kepala Sekolah<div style="height:75px"></div><b>${configRapor.kepala_sekolah||'-'}</b><br>NIP. ${configRapor.nip_kepala||'-'}</div>
                 <div class="rapor-footer">
-                    Laporan Hasil Belajar Digital | Siswa: ${s.nama} | Kelas: ${s.kelas} | NISN: ${s.nis} | Dicetak Otomatis oleh Sistem E-Raport Cloud
+                    Laporan Hasil Belajar | Siswa: ${s.nama} | Kelas: ${s.kelas} | NISN: ${s.nis} | Dicetak Otomatis di E-Rapor SDN 22 Tanah Keras
                 </div>
             </div>`;
         }
