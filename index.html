@@ -20,6 +20,10 @@
         .sync-loader { animation: spin 0.6s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         
+        /* Toast Animation */
+        .toast-enter { transform: translateX(100%); opacity: 0; }
+        .toast-active { transform: translateX(0); opacity: 1; transition: all 0.3s ease-out; }
+
         .custom-scrollbar::-webkit-scrollbar { height: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -28,12 +32,24 @@
 </head>
 <body class="bg-slate-100 text-slate-800">
 
-    <!-- SYNC OVERLAY -->
-    <div id="sync-overlay" class="hidden fixed inset-0 z-[200] bg-blue-900/90 backdrop-blur-md flex flex-col items-center justify-center text-white text-center p-6">
-        <i class="fas fa-sync sync-loader text-6xl mb-6"></i>
-        <h2 id="sync-text" class="text-2xl font-black tracking-widest uppercase mb-2">Sinkronisasi</h2>
-        <p id="sync-desc" class="opacity-80 max-sm">Mohon tunggu sebentar</p>
+    <!-- SYNC OVERLAY WITH PROGRESS BAR -->
+    <div id="sync-overlay" class="hidden fixed inset-0 z-[200] bg-blue-900/95 backdrop-blur-md flex flex-col items-center justify-center text-white text-center p-6">
+        <div class="w-full max-sm space-y-6">
+            <i class="fas fa-sync sync-loader text-6xl mb-2 text-blue-300"></i>
+            <div class="space-y-1">
+                <h2 id="sync-text" class="text-2xl font-black tracking-widest uppercase">Sinkronisasi Cloud...</h2>
+                <p id="sync-desc" class="opacity-80 text-sm font-medium">Mohon tunggu sebentar.</p>
+            </div>
+            
+            <div class="w-full bg-blue-950 h-4 rounded-full overflow-hidden border border-blue-800">
+                <div id="sync-progress-bar" class="bg-blue-400 h-full w-0 transition-all duration-300"></div>
+            </div>
+            <div class="text-4xl font-black text-blue-200" id="sync-percentage">0%</div>
+        </div>
     </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed bottom-10 right-10 z-[300] space-y-3 pointer-events-none"></div>
 
     <!-- LOGIN PAGE -->
     <div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center bg-blue-900 overflow-hidden">
@@ -41,7 +57,7 @@
             <div class="text-center mb-10">
                 <img src="https://iili.io/BUTM45l.png" alt="Logo Aplikasi" class="w-32 mx-auto mb-6 drop-shadow-lg">
                 <h2 class="text-3xl font-black text-slate-800 tracking-tight text-center">E-RAPORT</h2>
-                <p class="text-slate-500 font-medium text-center uppercase text-xs tracking-widest">UPT SDN 22 TANAH KERAS</p>
+                <p class="text-slate-500 font-medium text-center uppercase text-xs tracking-widest">Akses Pendidik Terintegrasi</p>
             </div>
             <form id="loginForm" class="space-y-6">
                 <div class="space-y-1">
@@ -61,7 +77,7 @@
                 <div class="h-[1px] flex-1 bg-slate-100"></div>
                 <div class="flex items-center space-x-2">
                     <i class="fas fa-shield-alt text-xs"></i>
-                    <span class="text-[9px] font-black uppercase tracking-widest">Fauzi, S.Hum</span>
+                    <span class="text-[9px] font-black uppercase tracking-widest">© Hak Cipta SDN 22 Tanah Keras</span>
                 </div>
                 <div class="h-[1px] flex-1 bg-slate-100"></div>
             </div>
@@ -76,8 +92,8 @@
                 <span class="text-xl font-bold uppercase tracking-wider text-white">E-Raport</span>
             </div>
             <nav class="flex-1 mt-6 px-4 space-y-1 overflow-y-auto">
-                <button onclick="fetchFromCloud()" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-600 text-white mb-4 hover:bg-emerald-700 transition shadow-lg">
-                    <i class="fas fa-sync w-5"></i><span class="font-bold">Tarik Data</span>
+                <button onclick="fetchWithProgress('Tunggu Sebentar')" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-600 text-white mb-4 hover:bg-emerald-700 transition shadow-lg">
+                    <i class="fas fa-sync w-5"></i><span class="font-bold">Tarik Data Terbaru</span>
                 </button>
 
                 <button onclick="showPage('beranda')" id="btn-beranda" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-700 text-white transition">
@@ -155,7 +171,7 @@
                 <section id="page-beranda" class="space-y-6">
                     <div class="bg-gradient-to-r from-blue-700 to-blue-500 rounded-3xl p-10 text-white shadow-2xl relative overflow-hidden">
                         <div class="relative z-10">
-                            <h2 class="text-4xl font-black mb-2 tracking-tight">Selamat Datang E-Raport Digital SDN 22 Tanah Keras 👋</h2>
+                            <h2 class="text-4xl font-black mb-2 tracking-tight">Selamat Datang E-Raport👋</h2>
                             <p class="text-blue-100 max-w-2xl text-lg font-medium">Sistem Kalkulasi Nilai & Peringkat Otomatis Aktif. Leger nilai kini dapat dicetak untuk arsip fisik sekolah.</p>
                         </div>
                     </div>
@@ -239,7 +255,7 @@
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div>
                                 <h2 class="text-2xl font-black text-slate-800 tracking-tight">Input Nilai Massal</h2>
-                                <p class="text-slate-500 text-sm">Pilih siswa untuk memunculkan seluruh daftar mata pelajaran kelasnya.</p>
+                                <p class="text-slate-500 text-sm">Pilih siswa untuk memunculkan seluruh daftar mata pelajaran yang Anda ampu.</p>
                             </div>
                             <div class="w-full md:w-80">
                                 <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Pilih Peserta Didik</label>
@@ -586,6 +602,11 @@
                                 <select id="user_role" class="px-4 py-3 border rounded-xl font-bold bg-white text-slate-700">
                                     <option value="Admin">Admin</option>
                                     <option value="Guru Kelas I">Guru Kelas I</option><option value="Guru Kelas II">Guru Kelas II</option><option value="Guru Kelas III">Guru Kelas III</option><option value="Guru Kelas IV">Guru Kelas IV</option><option value="Guru Kelas V">Guru Kelas V</option><option value="Guru Kelas VI">Guru Kelas VI</option>
+                                    <option value="Guru PAI">Guru PAI</option>
+                                    <option value="Guru Olahraga">Guru Olahraga</option>
+                                    <option value="Guru PQ">Guru PQ</option>
+                                    <option value="Guru Bahasa Inggris">Guru Bahasa Inggris</option>
+                                    <option value="Guru BAM">Guru BAM</option>
                                 </select>
                                 <button type="button" onclick="addUser()" class="md:col-span-3 py-4 bg-blue-600 text-white rounded-xl font-black">TAMBAH USER</button>
                             </form>
@@ -610,7 +631,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzSQS3nQnCjS-XOT43HZRCC1yTbDpqgKT_t2JfiV9MEpJtHMUH5qOfC9Niejp3q9hBZ/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3L0yuDwTYlYdKmn8OWaUL0fs6LUVAB5Dk_eKi2P3olqSRM71na5FmN7aseq72-prp1A/exec"; 
 
         let dataSiswa = [], dataMapel = [], dataNilai = [], dataAbsensi = [], dataWaliKelas = [], dataUsers = [];
         let configRapor = {}, configKop = {};
@@ -624,13 +645,76 @@
             { id: 103, username: 'Neldawati, S.Pd.SD', password: '12345', role: 'Guru Kelas III' },
             { id: 104, username: 'Iismaleni, S.Pd', password: '12345', role: 'Guru Kelas IV' },
             { id: 105, username: 'Yola Yurmaliza, S.Pd', password: '12345', role: 'Guru Kelas V' },
-            { id: 106, username: 'Nurdasmi, S.Pd.SD', password: '12345', role: 'Guru Kelas VI' }
+            { id: 106, username: 'Nurdasmi, S.Pd.SD', password: '12345', role: 'Guru Kelas VI' },
+            // Akun Guru Mata Pelajaran Baru
+            { id: 201, username: 'Yesi Harini S.Pd I', password: '12345', role: 'Guru PAI' },
+            { id: 202, username: 'Darwati, S.Pd', password: '12345', role: 'Guru Olahraga' },
+            { id: 203, username: 'Nelta Yuli Mardani, S.Pd I', password: '12345', role: 'Guru PQ' },
+            { id: 204, username: 'Yesi Putri, S.Pd', password: '12345', role: 'Guru Bahasa Inggris' },
+            { id: 205, username: 'Rexxy Fitriani, S.Pd', password: '12345', role: 'Guru BAM' }
         ];
+
+        // --- PROGRESS SYSTEM ---
+        function startProgress(title, duration = 1500) {
+            document.getElementById('sync-text').innerText = title;
+            document.getElementById('sync-overlay').classList.remove('hidden');
+            const bar = document.getElementById('sync-progress-bar');
+            const pct = document.getElementById('sync-percentage');
+            let count = 0;
+            const interval = setInterval(() => {
+                count += Math.floor(Math.random() * 5) + 2;
+                if (count >= 100) {
+                    count = 100;
+                    clearInterval(interval);
+                }
+                bar.style.width = count + "%";
+                pct.innerText = count + "%";
+            }, duration / 25);
+            return interval;
+        }
+
+        function endProgress(interval) {
+            clearInterval(interval);
+            document.getElementById('sync-progress-bar').style.width = "100%";
+            document.getElementById('sync-percentage').innerText = "100%";
+            setTimeout(() => {
+                document.getElementById('sync-overlay').classList.add('hidden');
+                document.getElementById('sync-progress-bar').style.width = "0%";
+                document.getElementById('sync-percentage').innerText = "0%";
+            }, 500);
+        }
+
+        // --- TOAST SYSTEM ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
+            const bgColor = type === 'success' ? 'bg-emerald-600' : (type === 'error' ? 'bg-red-600' : 'bg-blue-600');
+            
+            toast.className = `flex items-center space-x-3 px-6 py-4 ${bgColor} text-white rounded-2xl shadow-2xl toast-enter pointer-events-auto`;
+            toast.innerHTML = `
+                <i class="fas ${icon} text-xl"></i>
+                <span class="font-bold tracking-tight">${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('toast-active'), 10);
+            
+            setTimeout(() => {
+                toast.classList.replace('toast-active', 'toast-enter');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        async function fetchWithProgress(title) {
+            const interval = startProgress(title);
+            const success = await fetchFromCloud();
+            endProgress(interval);
+            if(success) showToast("Data Berhasil Ditarik");
+        }
 
         async function fetchFromCloud() {
             if (!SCRIPT_URL) return false;
-            document.getElementById('sync-text').innerText = "SINKRONISASI";
-            document.getElementById('sync-overlay').classList.remove('hidden');
             try {
                 const res = await fetch(SCRIPT_URL + "?action=fetchAll");
                 const text = await res.text();
@@ -646,17 +730,15 @@
                     dataUsers = data.users || [];
                     isDataInitialized = true; 
                     updateUIFromState();
-                    document.getElementById('sync-overlay').classList.add('hidden');
                     return true;
                 }
-            } catch (e) { document.getElementById('sync-overlay').classList.add('hidden'); }
+            } catch (e) { console.error(e); }
             return false;
         }
 
         async function pushToCloud() {
             if (!SCRIPT_URL || !isDataInitialized) return; 
-            document.getElementById('sync-text').innerText = "SEDANG MENYIMPAN...";
-            document.getElementById('sync-overlay').classList.remove('hidden');
+            showToast("Sedang Menyimpan...", "info");
             const payload = {
                 action: "syncAll",
                 data: { config: configRapor, kop: configKop, siswa: dataSiswa, mapel: dataMapel, nilai: dataNilai, absensi: dataAbsensi, wali: dataWaliKelas, users: dataUsers }
@@ -664,18 +746,34 @@
             try {
                 const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
                 await res.json();
-            } catch (e) { }
-            document.getElementById('sync-overlay').classList.add('hidden');
+                showToast("Berhasil Menyimpan");
+            } catch (e) { 
+                showToast("Gagal Menyimpan", "error");
+            }
         }
 
         document.getElementById('loginForm').onsubmit = async function(e) {
             e.preventDefault();
             const u = document.getElementById('login_username').value;
             const p = document.getElementById('login_password').value;
-            await fetchFromCloud();
+            
+            const interval = startProgress("Harap Tunggu Sedang Login");
+            const success = await fetchFromCloud();
+            endProgress(interval);
+
+            if(!success) {
+                showToast("Koneksi Database Cloud Gagal", "error");
+                return;
+            }
+
             const allUsers = [...HARDCODED_GURU, ...dataUsers];
             let user = allUsers.find(it => it.username === u && it.password === p);
-            if (user) loginSuccess(user);
+            if (user) {
+                loginSuccess(user);
+                showToast("Login Berhasil! Selamat Datang");
+            } else {
+                showToast("Username atau Password Salah", "error");
+            }
         };
 
         function loginSuccess(user) {
@@ -698,6 +796,14 @@
             const adminFilterCetak = document.getElementById('admin-filter-container');
             const adminFilterLeger = document.getElementById('leger-filter-admin');
             const adminProgressSection = document.getElementById('admin-progress-section');
+            const btnAbsensi = document.getElementById('btn-ketidakhadiran');
+
+            // Logika Visibilitas Menu Ketidakhadiran (Hanya Admin dan Guru Kelas)
+            if (role === 'Admin' || role.includes('Guru Kelas')) {
+                if(btnAbsensi) btnAbsensi.classList.remove('hidden');
+            } else {
+                if(btnAbsensi) btnAbsensi.classList.add('hidden');
+            }
 
             if (role === 'Admin') {
                 adminNav.classList.remove('hidden');
@@ -720,7 +826,6 @@
         window.onload = async function() {
             const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('current-date').innerText = new Date().toLocaleDateString('id-ID', opts);
-            await fetchFromCloud();
         };
 
         function updateUIFromState() {
@@ -802,7 +907,7 @@
             const t = document.getElementById('wali-table-body'); if(!t) return;
             t.innerHTML = '';
             dataWaliKelas.sort((a,b) => a.kelas.localeCompare(b.kelas)).forEach((w, i) => {
-                t.innerHTML += `<tr><td class="px-8 py-4">${i+1}</td><td class="px-8 py-4 font-bold text-slate-700">${w.nama}</td><td class="px-8 py-4 text-slate-500">${w.nip || '-'}</td><td class="px-8 py-4 text-center font-bold text-blue-600">${w.kelas}</td><td class="px-8 py-4 text-center"><button onclick="deleteData('wali', ${w.id})" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>`;
+                t.innerHTML += `<tr><td class="px-8 py-4">${i+1}</td><td class="px-8 py-4 font-bold text-slate-700">${w.nama}</td><td class="px-8 py-4 text-slate-500">${w.nip || '-'}</td><td class="px-8 py-4 text-center font-bold text-blue-600">${w.kelas}</td><td class="px-8 py-4 text-center"><button onclick="confirmDelete('wali', ${w.id})" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>`;
             });
         }
 
@@ -839,14 +944,31 @@
             pushToCloud();
         }
 
-        function deleteData(type, id) {
+        function confirmDelete(type, id) {
+            showToast("Sedang Menghapus...", "info");
+            deleteData(type, id);
+        }
+
+        async function deleteData(type, id) {
             if (type === 'user') dataUsers = dataUsers.filter(x => x.id != id);
             else if (type === 'siswa') dataSiswa = dataSiswa.filter(x => x.id != id);
             else if (type === 'mapel') dataMapel = dataMapel.filter(x => x.id != id);
             else if (type === 'nilai') dataNilai = dataNilai.filter(x => x.id != id);
             else if (type === 'absensi') dataAbsensi = dataAbsensi.filter(x => x.id != id);
             else if (type === 'wali') dataWaliKelas = dataWaliKelas.filter(x => x.id != id);
-            pushToCloud(); renderAllTables();
+            
+            const payload = {
+                action: "syncAll",
+                data: { config: configRapor, kop: configKop, siswa: dataSiswa, mapel: dataMapel, nilai: dataNilai, absensi: dataAbsensi, wali: dataWaliKelas, users: dataUsers }
+            };
+            try {
+                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                await res.json();
+                showToast("Berhasil Menghapus");
+                renderAllTables();
+            } catch (e) {
+                showToast("Gagal Menghapus", "error");
+            }
         }
 
         function renderUserTable() {
@@ -855,7 +977,7 @@
             const all = [...HARDCODED_GURU, ...dataUsers];
             all.forEach(u => {
                 const isPermanent = HARDCODED_GURU.find(hg => hg.username === u.username);
-                t.innerHTML += `<tr><td class="px-8 py-4 font-bold text-slate-700">${u.username}</td><td class="px-8 py-4"><span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-[10px] font-black uppercase">${u.role}</span></td><td class="px-8 py-4 text-center">${isPermanent ? '<i class="fas fa-lock"></i>' : `<button onclick="deleteData('user', ${u.id})" class="text-red-400"><i class="fas fa-trash"></i></button>`}</td></tr>`;
+                t.innerHTML += `<tr><td class="px-8 py-4 font-bold text-slate-700">${u.username}</td><td class="px-8 py-4"><span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-[10px] font-black uppercase">${u.role}</span></td><td class="px-8 py-4 text-center">${isPermanent ? '<i class="fas fa-lock"></i>' : `<button onclick="confirmDelete('user', ${u.id})" class="text-red-400"><i class="fas fa-trash"></i></button>`}</td></tr>`;
             });
         }
 
@@ -869,7 +991,7 @@
                     <td class="px-8 py-4 text-center text-slate-500">${s.nis}</td>
                     <td class="px-8 py-4 text-center text-slate-600 font-medium">${s.ortu && s.ortu.trim() !== "" ? s.ortu : '<span class="text-slate-300 italic">Belum Diisi</span>'}</td>
                     <td class="px-8 py-4 text-center font-bold text-blue-600">${s.kelas}</td>
-                    <td class="px-8 py-4 text-center"><button onclick="deleteData('siswa', ${s.id})" class="text-red-400"><i class="fas fa-trash"></i></button></td>
+                    <td class="px-8 py-4 text-center"><button onclick="confirmDelete('siswa', ${s.id})" class="text-red-400"><i class="fas fa-trash"></i></button></td>
                 </tr>`;
             });
         }
@@ -878,7 +1000,7 @@
             const t = document.getElementById('mapel-table-body'); if(!t) return;
             t.innerHTML = '';
             getFilteredMapel().forEach((m, i) => {
-                t.innerHTML += `<tr><td class="px-8 py-4">${i+1}</td><td class="px-8 py-4 font-bold text-slate-700">${m.nama}</td><td class="px-8 py-4 text-center font-black text-blue-600">${m.kkm}</td><td class="px-8 py-4 text-center font-bold text-slate-400 text-xs">${m.kelas}</td><td class="px-8 py-4 text-center"><button onclick="deleteData('mapel', ${m.id})" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>`;
+                t.innerHTML += `<tr><td class="px-8 py-4">${i+1}</td><td class="px-8 py-4 font-bold text-slate-700">${m.nama}</td><td class="px-8 py-4 text-center font-black text-blue-600">${m.kkm}</td><td class="px-8 py-4 text-center font-bold text-slate-400 text-xs">${m.kelas}</td><td class="px-8 py-4 text-center"><button onclick="confirmDelete('mapel', ${m.id})" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>`;
             });
         }
 
@@ -891,7 +1013,7 @@
             if(!thead || !tbody) return;
             let selectedClass = getSelectedLegerClass();
             const classSiswa = dataSiswa.filter(s => s.kelas === selectedClass);
-            const classMapel = getMapelByClass(selectedClass);
+            const classMapel = getMapelByClass(selectedClass, true); // True untuk melihat semua mapel di Leger
             let headHTML = `<tr><th class="px-4 py-5 sticky left-0 bg-slate-50 z-10 w-12 text-center">No</th><th class="px-6 py-5 sticky left-12 bg-slate-50 z-10">Nama Siswa</th>`;
             classMapel.forEach(m => headHTML += `<th class="px-4 py-5 text-center min-w-[80px]">${m.nama}</th>`);
             headHTML += `<th class="px-4 py-5 text-center bg-blue-50 text-blue-700">Total</th><th class="px-4 py-5 text-center bg-emerald-50 text-emerald-700">Rata2</th><th class="px-4 py-5 text-center bg-amber-50 text-amber-700">Rank</th></tr>`;
@@ -928,7 +1050,7 @@
 
         function getLegerProcessedData(className) {
             const classSiswa = dataSiswa.filter(s => s.kelas === className);
-            const classMapel = getMapelByClass(className);
+            const classMapel = getMapelByClass(className, true);
             const legerData = classSiswa.map(s => {
                 let total = 0;
                 let scores = {};
@@ -938,7 +1060,7 @@
                     scores[m.nama] = val;
                     total += val;
                 });
-                const avg = classMapel.length > 0 ? (total / classMapel.length).toFixed(1) : 0;
+                const avg = classMapel.length > 0 ? (total / classMapel.length).toFixed(2) : 0;
                 return { ...s, total, avg, scores };
             });
             const rankedData = [...legerData].sort((a,b) => b.total - a.total);
@@ -951,7 +1073,7 @@
         function cetakLeger() {
             const className = getSelectedLegerClass();
             const legerData = getLegerProcessedData(className);
-            const classMapel = getMapelByClass(className);
+            const classMapel = getMapelByClass(className, true);
             const wWali = dataWaliKelas.find(w => w.kelas === className) || { nama: '................', nip: '-' };
             let tableHeader = `<tr><th>No</th><th>Nama Peserta Didik</th>`;
             classMapel.forEach(m => tableHeader += `<th>${m.nama}</th>`);
@@ -999,7 +1121,7 @@
                     </div>
                     <div class="footer-block">
                         <div class="sign-box">
-                            Wali Kelas,<br>
+                            Guru Kelas,<br>
                             <div class="sign-space"></div>
                             <b>${wWali.nama}</b><br>
                             NIP. ${wWali.nip}
@@ -1035,7 +1157,7 @@
         }
 
         function getFilteredSiswa() {
-            if (!currentUser || currentUser.role === 'Admin') return dataSiswa;
+            if (!currentUser || currentUser.role === 'Admin' || currentUser.role.includes('Guru PAI') || currentUser.role.includes('Guru Olahraga') || currentUser.role.includes('Guru PQ') || currentUser.role.includes('Guru Bahasa Inggris') || currentUser.role.includes('Guru BAM')) return dataSiswa;
             const match = currentUser.role.match(/Kelas\s+([IVX]+)/i);
             if (!match) return [];
             const roleClassRoman = match[1].toUpperCase();
@@ -1044,26 +1166,62 @@
         
         function getFilteredMapel() {
             if (!currentUser || currentUser.role === 'Admin') return dataMapel;
+            
+            // Guru Mapel khusus
+            if (currentUser.role.includes('Guru PAI')) return dataMapel.filter(m => m.nama.toUpperCase().includes('PAI') || m.nama.toUpperCase().includes('AGAMA'));
+            if (currentUser.role.includes('Guru Olahraga')) return dataMapel.filter(m => m.nama.toUpperCase().includes('PJOK') || m.nama.toUpperCase().includes('OLAHRAGA'));
+            if (currentUser.role.includes('Guru PQ')) return dataMapel.filter(m => m.nama.toUpperCase().includes('PQ') || m.nama.toUpperCase().includes('QURAN'));
+            if (currentUser.role.includes('Guru Bahasa Inggris')) return dataMapel.filter(m => m.nama.toUpperCase().includes('INGGRIS'));
+            if (currentUser.role.includes('Guru BAM')) return dataMapel.filter(m => m.nama.toUpperCase().includes('BAM') || m.nama.toUpperCase().includes('MINANGKABAU'));
+
+            // Guru Kelas
             const match = currentUser.role.match(/Kelas\s+([IVX]+)/i);
             if (!match) return [];
             const roleClassRoman = match[1].toUpperCase();
-            return dataMapel.filter(m => m.kelas === roleClassRoman);
+
+            // Sembunyikan mapel khusus dari Guru Kelas
+            return dataMapel.filter(m => {
+                if (m.kelas !== roleClassRoman && m.kelas !== 'ADMIN') return false;
+                const n = m.nama.toUpperCase();
+                const isSpecial = n.includes('PAI') || n.includes('AGAMA') || n.includes('PJOK') || n.includes('OLAHRAGA') || n.includes('INGGRIS') || n.includes('BAM') || n.includes('MINANGKABAU') || n.includes('PQ') || n.includes('QURAN');
+                return !isSpecial;
+            });
         }
 
-        function getMapelByClass(className) {
+        function getMapelByClass(className, showAll = false) {
             if(!className) return [];
             const classRoman = className.split(' ')[0].toUpperCase();
-            return dataMapel.filter(m => m.kelas === classRoman);
+            let baseMapels = dataMapel.filter(m => m.kelas === classRoman || m.kelas === 'ADMIN');
+            
+            // Jika untuk Leger atau Rapor (showAll = true), kembalikan semua mapel kelas tsb
+            if (showAll || (currentUser && currentUser.role === 'Admin')) return baseMapels;
+
+            // Jika yang login adalah guru mapel spesifik
+            if (currentUser.role.includes('Guru PAI')) return baseMapels.filter(m => m.nama.toUpperCase().includes('PAI') || m.nama.toUpperCase().includes('AGAMA'));
+            if (currentUser.role.includes('Guru Olahraga')) return baseMapels.filter(m => m.nama.toUpperCase().includes('PJOK') || m.nama.toUpperCase().includes('OLAHRAGA'));
+            if (currentUser.role.includes('Guru PQ')) return baseMapels.filter(m => m.nama.toUpperCase().includes('PQ') || m.nama.toUpperCase().includes('QURAN'));
+            if (currentUser.role.includes('Guru Bahasa Inggris')) return baseMapels.filter(m => m.nama.toUpperCase().includes('INGGRIS'));
+            if (currentUser.role.includes('Guru BAM')) return baseMapels.filter(m => m.nama.toUpperCase().includes('BAM') || m.nama.toUpperCase().includes('MINANGKABAU'));
+
+            // Jika Guru Kelas, sembunyikan mapel khusus saat input nilai
+            if (currentUser.role.includes('Guru Kelas')) {
+                return baseMapels.filter(m => {
+                    const n = m.nama.toUpperCase();
+                    return !(n.includes('PAI') || n.includes('AGAMA') || n.includes('PJOK') || n.includes('OLAHRAGA') || n.includes('INGGRIS') || n.includes('BAM') || n.includes('MINANGKABAU') || n.includes('PQ') || n.includes('QURAN'));
+                });
+            }
+
+            return baseMapels;
         }
 
         function populateBulkDropdowns() {
             const sn = document.getElementById('nilai_nama_siswa'); if(sn) {
                 sn.innerHTML = '<option value="">Pilih Siswa...</option>';
-                getFilteredSiswa().forEach(it => sn.innerHTML += `<option value="${it.nis}">${it.nama}</option>`);
+                getFilteredSiswa().forEach(it => sn.innerHTML += `<option value="${it.nis}">${it.nama} (${it.kelas})</option>`);
             }
             const sa = document.getElementById('absensi_nama_siswa_bulk'); if(sa) {
                 sa.innerHTML = '<option value="">Pilih Siswa...</option>';
-                getFilteredSiswa().forEach(it => sa.innerHTML += `<option value="${it.nama}">${it.nama}</option>`);
+                getFilteredSiswa().forEach(it => sa.innerHTML += `<option value="${it.nama}">${it.nama} (${it.kelas})</option>`);
             }
         }
 
@@ -1105,13 +1263,16 @@
             const s = dataSiswa.find(it => it.nis == nis); if (!s) return;
             document.getElementById('bulk-display-nisn').innerText = s.nis;
             document.getElementById('bulk-display-kelas').innerText = s.kelas;
+            
+            // Mendapatkan mapel yang relevan bagi GURU tersebut di KELAS tersebut
             const relevantMapels = getMapelByClass(s.kelas);
+            
             tbody.innerHTML = '';
             relevantMapels.forEach(m => {
                 const existing = dataNilai.find(n => n.sId.toString() === nis.toString() && n.mapel === m.nama);
                 tbody.innerHTML += `<tr><td class="px-8 py-4 font-bold text-slate-700">${m.nama}</td><td class="px-8 py-4 text-center font-black uppercase text-[10px] text-slate-400">${m.kkm}</td><td class="px-8 py-4 text-center"><input type="number" data-mapel="${m.nama}" value="${existing?existing.score:''}" class="bulk-score-input w-full px-4 py-2 border-2 rounded-xl font-black text-center text-blue-600 focus:border-blue-500 outline-none transition" min="0" max="100"></td></tr>`;
             });
-            if (relevantMapels.length === 0) tbody.innerHTML = '<tr><td colspan="3" class="px-8 py-10 text-center italic">Mapel belum diinput.</td></tr>';
+            if (relevantMapels.length === 0) tbody.innerHTML = '<tr><td colspan="3" class="px-8 py-10 text-center italic">Tidak ada mata pelajaran yang tersedia bagi Anda untuk siswa ini.</td></tr>';
             container.classList.remove('hidden');
         }
 
@@ -1119,7 +1280,11 @@
             const nis = document.getElementById('nilai_nama_siswa').value;
             const s = dataSiswa.find(it => it.nis == nis); if (!s) return;
             const inputs = document.querySelectorAll('.bulk-score-input');
-            dataNilai = dataNilai.filter(n => n.sId.toString() !== nis.toString());
+            
+            // Menghapus nilai lama hanya untuk mapel yang sedang diinput oleh guru ini
+            const editedMapels = Array.from(inputs).map(inp => inp.getAttribute('data-mapel'));
+            dataNilai = dataNilai.filter(n => !(n.sId.toString() === nis.toString() && editedMapels.includes(n.mapel)));
+            
             inputs.forEach(inp => {
                 const sc = inp.value;
                 if (sc !== "") dataNilai.push({ id: Date.now() + Math.random(), sId: s.nis, sNama: s.nama, kelas: s.kelas, mapel: inp.getAttribute('data-mapel'), score: sc });
@@ -1234,10 +1399,21 @@
             const alfa = aSiswa.filter(a => a.type === 'Tanpa Keterangan').reduce((sum, a) => sum + parseInt(a.jumlah || 0), 0);
             const wSiswa = dataWaliKelas.find(w => w.kelas === s.kelas) || { nama: '................', nip: '-' };
             const classRoman = s.kelas.split(' ')[0].toUpperCase();
-            const relevantMapel = dataMapel.filter(m => m.kelas === classRoman);
+            const relevantMapel = dataMapel.filter(m => m.kelas === classRoman || m.kelas === 'ADMIN');
             const totalScore = nSiswa.reduce((sum, n) => sum + parseInt(n.score || 0), 0);
             const avgScore = relevantMapel.length > 0 ? (totalScore / relevantMapel.length).toFixed(2) : 0;
             const rank = calculateRankings(s.kelas).findIndex(r => r.nis.toString() === studentNis.toString()) + 1;
+
+            // Logika Konversi Angka Kelas dari Romawi ke Desimal
+            let classNum = "";
+            if(classRoman === "I") classNum = "1";
+            else if(classRoman === "II") classNum = "2";
+            else if(classRoman === "III") classNum = "3";
+            else if(classRoman === "IV") classNum = "4";
+            else if(classRoman === "V") classNum = "5";
+            else if(classRoman === "VI") classNum = "6";
+            
+            const teacherLabel = `Guru Kelas ${classNum}`;
 
             let rows = '';
             relevantMapel.forEach((m, i) => {
@@ -1280,11 +1456,11 @@
                 <div class="text-right" style="margin-bottom:5px">${configRapor.alamat_sekolah||'................'}, ${configRapor.tgl_rapor ? new Date(configRapor.tgl_rapor).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'}) : '15 April 2026'}</div>
                 <div style="display:flex;justify-content:space-between;text-align:center" class="no-border">
                     <div style="width:30%">Orang Tua/Wali,<div style="height:75px"></div><b>( ${s.ortu && s.ortu.trim() !== "" ? s.ortu : '............................'} )</b></div>
-                    <div style="width:30%">Wali Kelas,<div style="height:75px"></div><b>${wSiswa.nama}</b><br>NIP. ${wSiswa.nip}</div>
+                    <div style="width:30%">${teacherLabel},<div style="height:75px"></div><b>${wSiswa.nama}</b><br>NIP. ${wSiswa.nip}</div>
                 </div>
                 <div style="text-align:center;margin-top:10px;margin-bottom:15px" class="no-border">Mengetahui,<br>Kepala Sekolah<div style="height:75px"></div><b>${configRapor.kepala_sekolah||'-'}</b><br>NIP. ${configRapor.nip_kepala||'-'}</div>
                 <div class="rapor-footer">
-                    Laporan Hasil Belajar | Siswa: ${s.nama} | Kelas: ${s.kelas} | NISN: ${s.nis} | Dicetak Otomatis oleh E-Raport SDN 22 Tanah Keras
+                    Laporan Hasil Belajar Digital | Siswa: ${s.nama} | Kelas: ${s.kelas} | NISN: ${s.nis} | Dicetak Otomatis oleh Sistem E-Raport Cloud
                 </div>
             </div>`;
         }
@@ -1301,7 +1477,6 @@
         }
         function getPredicate(s) { s=parseInt(s); if(s>=81) return 'A'; if(s>=61) return 'B'; if(s>=41) return 'C'; if(s>=21) return 'D'; return 'E'; }
         
-        function showToast(t,d,tp='success'){ }
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
         function updateDashboardStats() { document.getElementById('display-total-siswa').innerText = dataSiswa.length + " Siswa"; }
         function toggleUserForm() { document.getElementById('form-container-user').classList.toggle('hidden'); }
