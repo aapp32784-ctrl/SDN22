@@ -2,17 +2,29 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>E-Raport</title>
     
-    <!-- FAVICON -->
+    <!-- PWA META TAGS FOR FULL SCREEN MODE -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="E-Raport">
+    <meta name="theme-color" content="#1e40af">
+    
+    <!-- FAVICON & APP ICON -->
     <link rel="icon" type="image/png" href="https://iili.io/BUTM45l.png">
+    <link rel="apple-touch-icon" href="https://iili.io/BUTM45l.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            /* Mencegah scroll memantul di iOS */
+            overscroll-behavior-y: contain;
+        }
         .sidebar-transition { transition: all 0.3s ease-in-out; }
         .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -20,7 +32,6 @@
         .sync-loader { animation: spin 0.6s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         
-        /* Toast Animation */
         .toast-enter { transform: translateX(100%); opacity: 0; }
         .toast-active { transform: translateX(0); opacity: 1; transition: all 0.3s ease-out; }
 
@@ -28,17 +39,22 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Penyesuaian khusus PWA Standalone */
+        @media all and (display-mode: standalone) {
+            header { padding-top: env(safe-area-inset-top); }
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800">
 
     <!-- SYNC OVERLAY WITH PROGRESS BAR -->
     <div id="sync-overlay" class="hidden fixed inset-0 z-[200] bg-blue-900/95 backdrop-blur-md flex flex-col items-center justify-center text-white text-center p-6">
-        <div class="w-full max-sm space-y-6">
+        <div class="w-full max-w-sm space-y-6">
             <i class="fas fa-sync sync-loader text-6xl mb-2 text-blue-300"></i>
             <div class="space-y-1">
                 <h2 id="sync-text" class="text-2xl font-black tracking-widest uppercase">Sinkronisasi Cloud...</h2>
-                <p id="sync-desc" class="opacity-80 text-sm font-medium">Mohon tunggu sebentar.</p>
+                <p id="sync-desc" class="opacity-80 text-sm font-medium">Mohon tunggu sebentar agar data terproses.</p>
             </div>
             
             <div class="w-full bg-blue-950 h-4 rounded-full overflow-hidden border border-blue-800">
@@ -93,7 +109,7 @@
             </div>
             <nav class="flex-1 mt-6 px-4 space-y-1 overflow-y-auto">
                 <button onclick="fetchWithProgress('Tunggu Sebentar')" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-600 text-white mb-4 hover:bg-emerald-700 transition shadow-lg">
-                    <i class="fas fa-sync w-5"></i><span class="font-bold">Tarik Data Terbaru</span>
+                    <i class="fas fa-sync w-5"></i><span class="font-bold">Tarik Data</span>
                 </button>
 
                 <button onclick="showPage('beranda')" id="btn-beranda" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-700 text-white transition">
@@ -161,7 +177,7 @@
                     <span id="current-date" class="text-sm text-slate-500 font-bold"></span>
                     <div id="sync-status-indicator" class="flex items-center space-x-2 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest">
                         <div class="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                        <span>Database Aktif</span>
+                        <span>Cloud Database Aktif</span>
                     </div>
                 </div>
             </header>
@@ -171,8 +187,8 @@
                 <section id="page-beranda" class="space-y-6">
                     <div class="bg-gradient-to-r from-blue-700 to-blue-500 rounded-3xl p-10 text-white shadow-2xl relative overflow-hidden">
                         <div class="relative z-10">
-                            <h2 class="text-4xl font-black mb-2 tracking-tight">Selamat Datang E-Raport👋</h2>
-                            <p class="text-blue-100 max-w-2xl text-lg font-medium">Sistem Kalkulasi Nilai & Peringkat Otomatis Aktif. Leger nilai kini dapat dicetak untuk arsip fisik sekolah.</p>
+                            <h2 class="text-4xl font-black mb-2 tracking-tight">Selamat DatangE-Raport Digital SDN 22 Tanah Keras 👋</h2>
+                            <p class="text-blue-100 max-w-2xl text-lg font-medium">Sistem Kalkulasi Nilai memudahkan integrasi data, mempercepat administrasi guru, serta meningkatkan akurasi penilaian.</p>
                         </div>
                     </div>
 
@@ -631,6 +647,7 @@
     </div>
 
     <script>
+        // Memperbaiki SCRIPT_URL yang salah (karakter * diubah kembali menjadi q)
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3L0yuDwTYlYdKmn8OWaUL0fs6LUVAB5Dk_eKi2P3olqSRM71na5FmN7aseq72-prp1A/exec"; 
 
         let dataSiswa = [], dataMapel = [], dataNilai = [], dataAbsensi = [], dataWaliKelas = [], dataUsers = [];
@@ -716,9 +733,14 @@
         async function fetchFromCloud() {
             if (!SCRIPT_URL) return false;
             try {
-                const res = await fetch(SCRIPT_URL + "?action=fetchAll");
-                const text = await res.text();
-                let data = JSON.parse(text);
+                const response = await fetch(SCRIPT_URL + "?action=fetchAll", {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const data = await response.json();
                 if (data && !data.error) {
                     configRapor = data.config || {};
                     configKop = data.kop || {};
@@ -732,8 +754,12 @@
                     updateUIFromState();
                     return true;
                 }
-            } catch (e) { console.error(e); }
-            return false;
+                return false;
+            } catch (e) { 
+                console.error("Fetch error:", e); 
+                showToast("Gagal mengambil data dari Cloud", "error");
+                return false; 
+            }
         }
 
         async function pushToCloud() {
@@ -744,11 +770,14 @@
                 data: { config: configRapor, kop: configKop, siswa: dataSiswa, mapel: dataMapel, nilai: dataNilai, absensi: dataAbsensi, wali: dataWaliKelas, users: dataUsers }
             };
             try {
-                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const res = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify(payload)
+                });
                 await res.json();
                 showToast("Berhasil Menyimpan");
             } catch (e) { 
-                showToast("Gagal Menyimpan", "error");
+                showToast("Gagal Menyimpan ke Cloud", "error");
             }
         }
 
@@ -762,7 +791,7 @@
             endProgress(interval);
 
             if(!success) {
-                showToast("Koneksi Database Cloud Gagal", "error");
+                // Jangan lanjut jika gagal fetch, biarkan user mencoba lagi
                 return;
             }
 
@@ -798,7 +827,6 @@
             const adminProgressSection = document.getElementById('admin-progress-section');
             const btnAbsensi = document.getElementById('btn-ketidakhadiran');
 
-            // Logika Visibilitas Menu Ketidakhadiran (Hanya Admin dan Guru Kelas)
             if (role === 'Admin' || role.includes('Guru Kelas')) {
                 if(btnAbsensi) btnAbsensi.classList.remove('hidden');
             } else {
@@ -825,7 +853,8 @@
 
         window.onload = async function() {
             const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('current-date').innerText = new Date().toLocaleDateString('id-ID', opts);
+            const dtEl = document.getElementById('current-date');
+            if (dtEl) dtEl.innerText = new Date().toLocaleDateString('id-ID', opts);
         };
 
         function updateUIFromState() {
@@ -1013,7 +1042,7 @@
             if(!thead || !tbody) return;
             let selectedClass = getSelectedLegerClass();
             const classSiswa = dataSiswa.filter(s => s.kelas === selectedClass);
-            const classMapel = getMapelByClass(selectedClass, true); // True untuk melihat semua mapel di Leger
+            const classMapel = getMapelByClass(selectedClass, true);
             let headHTML = `<tr><th class="px-4 py-5 sticky left-0 bg-slate-50 z-10 w-12 text-center">No</th><th class="px-6 py-5 sticky left-12 bg-slate-50 z-10">Nama Siswa</th>`;
             classMapel.forEach(m => headHTML += `<th class="px-4 py-5 text-center min-w-[80px]">${m.nama}</th>`);
             headHTML += `<th class="px-4 py-5 text-center bg-blue-50 text-blue-700">Total</th><th class="px-4 py-5 text-center bg-emerald-50 text-emerald-700">Rata2</th><th class="px-4 py-5 text-center bg-amber-50 text-amber-700">Rank</th></tr>`;
@@ -1167,19 +1196,16 @@
         function getFilteredMapel() {
             if (!currentUser || currentUser.role === 'Admin') return dataMapel;
             
-            // Guru Mapel khusus
             if (currentUser.role.includes('Guru PAI')) return dataMapel.filter(m => m.nama.toUpperCase().includes('PAI') || m.nama.toUpperCase().includes('AGAMA'));
             if (currentUser.role.includes('Guru Olahraga')) return dataMapel.filter(m => m.nama.toUpperCase().includes('PJOK') || m.nama.toUpperCase().includes('OLAHRAGA'));
             if (currentUser.role.includes('Guru PQ')) return dataMapel.filter(m => m.nama.toUpperCase().includes('PQ') || m.nama.toUpperCase().includes('QURAN'));
             if (currentUser.role.includes('Guru Bahasa Inggris')) return dataMapel.filter(m => m.nama.toUpperCase().includes('INGGRIS'));
             if (currentUser.role.includes('Guru BAM')) return dataMapel.filter(m => m.nama.toUpperCase().includes('BAM') || m.nama.toUpperCase().includes('MINANGKABAU'));
 
-            // Guru Kelas
             const match = currentUser.role.match(/Kelas\s+([IVX]+)/i);
             if (!match) return [];
             const roleClassRoman = match[1].toUpperCase();
 
-            // Sembunyikan mapel khusus dari Guru Kelas
             return dataMapel.filter(m => {
                 if (m.kelas !== roleClassRoman && m.kelas !== 'ADMIN') return false;
                 const n = m.nama.toUpperCase();
@@ -1193,17 +1219,14 @@
             const classRoman = className.split(' ')[0].toUpperCase();
             let baseMapels = dataMapel.filter(m => m.kelas === classRoman || m.kelas === 'ADMIN');
             
-            // Jika untuk Leger atau Rapor (showAll = true), kembalikan semua mapel kelas tsb
             if (showAll || (currentUser && currentUser.role === 'Admin')) return baseMapels;
 
-            // Jika yang login adalah guru mapel spesifik
             if (currentUser.role.includes('Guru PAI')) return baseMapels.filter(m => m.nama.toUpperCase().includes('PAI') || m.nama.toUpperCase().includes('AGAMA'));
             if (currentUser.role.includes('Guru Olahraga')) return baseMapels.filter(m => m.nama.toUpperCase().includes('PJOK') || m.nama.toUpperCase().includes('OLAHRAGA'));
             if (currentUser.role.includes('Guru PQ')) return baseMapels.filter(m => m.nama.toUpperCase().includes('PQ') || m.nama.toUpperCase().includes('QURAN'));
             if (currentUser.role.includes('Guru Bahasa Inggris')) return baseMapels.filter(m => m.nama.toUpperCase().includes('INGGRIS'));
             if (currentUser.role.includes('Guru BAM')) return baseMapels.filter(m => m.nama.toUpperCase().includes('BAM') || m.nama.toUpperCase().includes('MINANGKABAU'));
 
-            // Jika Guru Kelas, sembunyikan mapel khusus saat input nilai
             if (currentUser.role.includes('Guru Kelas')) {
                 return baseMapels.filter(m => {
                     const n = m.nama.toUpperCase();
@@ -1264,7 +1287,6 @@
             document.getElementById('bulk-display-nisn').innerText = s.nis;
             document.getElementById('bulk-display-kelas').innerText = s.kelas;
             
-            // Mendapatkan mapel yang relevan bagi GURU tersebut di KELAS tersebut
             const relevantMapels = getMapelByClass(s.kelas);
             
             tbody.innerHTML = '';
@@ -1281,7 +1303,6 @@
             const s = dataSiswa.find(it => it.nis == nis); if (!s) return;
             const inputs = document.querySelectorAll('.bulk-score-input');
             
-            // Menghapus nilai lama hanya untuk mapel yang sedang diinput oleh guru ini
             const editedMapels = Array.from(inputs).map(inp => inp.getAttribute('data-mapel'));
             dataNilai = dataNilai.filter(n => !(n.sId.toString() === nis.toString() && editedMapels.includes(n.mapel)));
             
@@ -1404,7 +1425,6 @@
             const avgScore = relevantMapel.length > 0 ? (totalScore / relevantMapel.length).toFixed(2) : 0;
             const rank = calculateRankings(s.kelas).findIndex(r => r.nis.toString() === studentNis.toString()) + 1;
 
-            // Logika Konversi Angka Kelas dari Romawi ke Desimal
             let classNum = "";
             if(classRoman === "I") classNum = "1";
             else if(classRoman === "II") classNum = "2";
