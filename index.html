@@ -18,8 +18,9 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap');
         body { 
             font-family: 'Inter', sans-serif; 
             /* Mencegah scroll memantul di iOS */
@@ -54,7 +55,7 @@
             <i class="fas fa-sync sync-loader text-6xl mb-2 text-blue-300"></i>
             <div class="space-y-1">
                 <h2 id="sync-text" class="text-2xl font-black tracking-widest uppercase">Sinkronisasi Cloud...</h2>
-                <p id="sync-desc" class="opacity-80 text-sm font-medium">Mohon tunggu sebentar agar data terproses.</p>
+                <p id="sync-desc" class="opacity-80 text-sm font-medium">Mohon tunggu sebentar.</p>
             </div>
             
             <div class="w-full bg-blue-950 h-4 rounded-full overflow-hidden border border-blue-800">
@@ -71,9 +72,9 @@
     <div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center bg-blue-900 overflow-hidden">
         <div class="glass w-full max-w-md p-10 rounded-3xl shadow-2xl relative z-10 mx-4">
             <div class="text-center mb-10">
-                <img src="https://iili.io/BUTM45l.png" alt="Logo Aplikasi" class="w-32 mx-auto mb-6 drop-shadow-lg">
+                <img src="https://iili.io/BUTM45l.png" alt="Logo SDN 22" class="w-32 mx-auto mb-6 drop-shadow-lg">
                 <h2 class="text-3xl font-black text-slate-800 tracking-tight text-center">E-RAPORT</h2>
-                <p class="text-slate-500 font-medium text-center uppercase text-xs tracking-widest">Akses Pendidik Terintegrasi</p>
+                <p class="text-slate-500 font-medium text-center uppercase text-xs tracking-widest">UPT SDN 22 TANAH KERAS</p>
             </div>
             <form id="loginForm" class="space-y-6">
                 <div class="space-y-1">
@@ -93,7 +94,7 @@
                 <div class="h-[1px] flex-1 bg-slate-100"></div>
                 <div class="flex items-center space-x-2">
                     <i class="fas fa-shield-alt text-xs"></i>
-                    <span class="text-[9px] font-black uppercase tracking-widest">© Hak Cipta SDN 22 Tanah Keras</span>
+                    <span class="text-[9px] font-black uppercase tracking-widest">2026 E-Rapor UPT SDN 22 Tanah Keras</span>
                 </div>
                 <div class="h-[1px] flex-1 bg-slate-100"></div>
             </div>
@@ -102,24 +103,26 @@
 
     <!-- MAIN APP WRAPPER -->
     <div id="main-app" class="hidden flex min-h-screen overflow-hidden">
+        <!-- SIDEBAR -->
         <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-blue-800 text-white transform -translate-x-full lg:translate-x-0 sidebar-transition flex flex-col shadow-xl">
             <div class="p-6 flex items-center space-x-3 border-b border-blue-700">
                 <div class="bg-white p-2 rounded-lg"><i class="fas fa-graduation-cap text-blue-800 text-xl"></i></div>
                 <span class="text-xl font-bold uppercase tracking-wider text-white">E-Raport</span>
             </div>
             <nav class="flex-1 mt-6 px-4 space-y-1 overflow-y-auto">
-                <button onclick="fetchWithProgress('Tunggu Sebentar')" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-600 text-white mb-4 hover:bg-emerald-700 transition shadow-lg">
-                    <i class="fas fa-sync w-5"></i><span class="font-bold">Tarik Data</span>
+                <button onclick="fetchWithProgress('Menarik Data Terbaru')" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-600 text-white mb-4 hover:bg-emerald-700 transition shadow-lg">
+                    <i class="fas fa-sync w-5"></i><span class="font-bold">Tarik Data Terbaru</span>
                 </button>
 
                 <button onclick="showPage('beranda')" id="btn-beranda" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-700 text-white transition">
                     <i class="fas fa-home w-5"></i><span>Beranda</span>
                 </button>
-                <button onclick="showPage('mata-pelajaran')" id="btn-mata-pelajaran" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-blue-700 text-blue-100 transition">
-                    <i class="fas fa-book w-5"></i><span>Mata Pelajaran</span>
-                </button>
 
                 <div id="admin-only-nav">
+                    <!-- Navigasi Menu Mata Pelajaran dipindahkan ke sini agar HANYA Admin yang bisa melihatnya -->
+                    <button onclick="showPage('mata-pelajaran')" id="btn-mata-pelajaran" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-blue-700 text-blue-100 transition">
+                        <i class="fas fa-book w-5"></i><span>Mata Pelajaran</span>
+                    </button>
                     <button onclick="showPage('data-rapor')" id="btn-data-rapor" class="nav-link w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-blue-700 text-blue-100 transition">
                         <i class="fas fa-file-invoice w-5"></i><span>Data Rapor</span>
                     </button>
@@ -177,7 +180,7 @@
                     <span id="current-date" class="text-sm text-slate-500 font-bold"></span>
                     <div id="sync-status-indicator" class="flex items-center space-x-2 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest">
                         <div class="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                        <span>Cloud Database Aktif</span>
+                        <span>Secure Sync Online</span>
                     </div>
                 </div>
             </header>
@@ -187,8 +190,8 @@
                 <section id="page-beranda" class="space-y-6">
                     <div class="bg-gradient-to-r from-blue-700 to-blue-500 rounded-3xl p-10 text-white shadow-2xl relative overflow-hidden">
                         <div class="relative z-10">
-                            <h2 class="text-4xl font-black mb-2 tracking-tight">Selamat DatangE-Raport Digital SDN 22 Tanah Keras 👋</h2>
-                            <p class="text-blue-100 max-w-2xl text-lg font-medium">Sistem Kalkulasi Nilai memudahkan integrasi data, mempercepat administrasi guru, serta meningkatkan akurasi penilaian.</p>
+                            <h2 class="text-4xl font-black mb-2 tracking-tight">E-Raport Digital UPT SDN 22 Tanah Keras 👋</h2>
+                            <p class="text-blue-100 max-w-2xl text-lg font-medium">Memudahkan Guru Dalam Mengelola Nilai Siswa.</p>
                         </div>
                     </div>
 
@@ -546,19 +549,63 @@
                 <section id="page-mata-pelajaran" class="hidden animate-fade-in space-y-6">
                     <div class="flex justify-between items-center bg-white p-6 rounded-2xl border">
                         <h2 class="text-xl font-black text-slate-800 tracking-tight">Mata Pelajaran Kelas</h2>
-                        <button onclick="toggleMapelForm()" class="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold">Tambah Mapel</button>
+                        <!-- ID TAMBAH MAPEL DITAMBAHKAN UNTUK PENGATURAN HAK AKSES -->
+                        <button id="btn-tambah-mapel" onclick="toggleMapelForm()" class="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold">Tambah Mapel</button>
                     </div>
+                    
+                    <!-- FORM MATA PELAJARAN DIUBAH MENURUT PERMINTAAN USER: Menambahkan Kelas dan Urutan Rapor -->
                     <div id="form-container-mapel" class="hidden bg-white p-8 rounded-2xl border animate-fade-in">
                         <form id="mapelForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <input type="text" id="nama_mapel" placeholder="Nama Mata Pelajaran" class="px-4 py-3 border rounded-xl font-bold text-slate-700">
-                            <input type="number" id="kkm_mapel" placeholder="KKM" class="px-4 py-3 border rounded-xl font-bold text-slate-700">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Mata Pelajaran</label>
+                                <input type="text" id="nama_mapel" placeholder="Nama Mata Pelajaran" class="w-full px-4 py-3 border rounded-xl font-bold text-slate-700">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">KKM</label>
+                                <input type="number" id="kkm_mapel" placeholder="KKM (Contoh: 70)" class="w-full px-4 py-3 border rounded-xl font-bold text-slate-700">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tingkatan Kelas</label>
+                                <select id="kelas_mapel" class="w-full px-4 py-3 border rounded-xl font-bold bg-white text-slate-700">
+                                    <option value="I">Kelas I</option>
+                                    <option value="II">Kelas II</option>
+                                    <option value="III">Kelas III</option>
+                                    <option value="IV">Kelas IV</option>
+                                    <option value="V">Kelas V</option>
+                                    <option value="VI">Kelas VI</option>
+                                    <option value="ADMIN">Semua Kelas / ADMIN</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Urutan di Rapor</label>
+                                <input type="number" id="urutan_mapel" placeholder="Nomor Urut (Contoh: 1, 2, 3...)" class="w-full px-4 py-3 border rounded-xl font-bold text-slate-700">
+                            </div>
                             <button type="button" onclick="addMapel()" class="md:col-span-2 py-4 bg-blue-600 text-white rounded-xl font-black shadow-lg">SIMPAN MAPEL</button>
                         </form>
                     </div>
+
+                    <!-- TABULASI FILTER HALAMAN KELAS (MENCEGAH TABEL MEMANJANG KE BAWAH) -->
+                    <div class="flex flex-wrap gap-2 pb-2 overflow-x-auto custom-scrollbar">
+                        <button onclick="filterMapelByClass('I')" id="tab-mapel-I" class="tab-mapel-btn px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-blue-600 text-white shadow transition-all duration-200">Kelas I</button>
+                        <button onclick="filterMapelByClass('II')" id="tab-mapel-II" class="tab-mapel-btn px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-white text-slate-500 border hover:bg-slate-50 shadow-sm transition-all duration-200">Kelas II</button>
+                        <button onclick="filterMapelByClass('III')" id="tab-mapel-III" class="tab-mapel-btn px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-white text-slate-500 border hover:bg-slate-50 shadow-sm transition-all duration-200">Kelas III</button>
+                        <button onclick="filterMapelByClass('IV')" id="tab-mapel-IV" class="tab-mapel-btn px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-white text-slate-500 border hover:bg-slate-50 shadow-sm transition-all duration-200">Kelas IV</button>
+                        <button onclick="filterMapelByClass('V')" id="tab-mapel-V" class="tab-mapel-btn px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-white text-slate-500 border hover:bg-slate-50 shadow-sm transition-all duration-200">Kelas V</button>
+                        <button onclick="filterMapelByClass('VI')" id="tab-mapel-VI" class="tab-mapel-btn px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-white text-slate-500 border hover:bg-slate-50 shadow-sm transition-all duration-200">Kelas VI</button>
+                        <button onclick="filterMapelByClass('ADMIN')" id="tab-mapel-ADMIN" class="tab-mapel-btn px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-white text-slate-500 border hover:bg-slate-50 shadow-sm transition-all duration-200">ADMIN / UMUM</button>
+                    </div>
+                    
                     <div class="bg-white rounded-2xl border overflow-hidden">
                         <table class="w-full text-left">
                             <thead class="bg-slate-50 text-slate-400 text-[10px] font-black uppercase border-b">
-                                <tr><th class="px-8 py-5">No</th><th class="px-8 py-5">Nama Mapel</th><th class="px-8 py-5 text-center">KKM</th><th class="px-8 py-5 text-center">Kelas</th><th class="px-8 py-5 text-center">Aksi</th></tr>
+                                <tr>
+                                    <th class="px-8 py-5">No</th>
+                                    <th class="px-8 py-5">Nama Mapel</th>
+                                    <th class="px-8 py-5 text-center">KKM</th>
+                                    <th class="px-8 py-5 text-center">Kelas</th>
+                                    <th class="px-8 py-5 text-center">Urutan</th>
+                                    <th class="px-8 py-5 text-center">Aksi</th>
+                                </tr>
                             </thead>
                             <tbody id="mapel-table-body" class="divide-y"></tbody>
                         </table>
@@ -641,34 +688,36 @@
             </div>
 
             <footer class="mt-auto py-6 px-8 bg-white border-t text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                &copy; 2026 E-Raport v2.5 • SDN 22 Tanah Keras_Kec. Bayang
+                &copy; 2026 E-Raport v2.7 • SDN 22 Tanah Keras_Kec. Bayang
             </footer>
         </main>
     </div>
 
     <script>
-        // Memperbaiki SCRIPT_URL yang salah (karakter * diubah kembali menjadi q)
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3L0yuDwTYlYdKmn8OWaUL0fs6LUVAB5Dk_eKi2P3olqSRM71na5FmN7aseq72-prp1A/exec"; 
+        // DIHUBUNGKAN DENGAN TAUTAN DATABASE CLOUD BARU SESUAI PERMINTAAN USER
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1mpDkYUNOLHdbhazV8OKbIRkiJPAsenqgPJlF3qNtXCiRotvyFCOISlUSMpvYqN69-g/exec"; 
 
         let dataSiswa = [], dataMapel = [], dataNilai = [], dataAbsensi = [], dataWaliKelas = [], dataUsers = [];
         let configRapor = {}, configKop = {};
         let currentUser = null;
         let isDataInitialized = false; 
+        
+        // Status Halaman/Tab Aktif pada Menu Mata Pelajaran
+        let activeMapelClass = "I";
 
         const HARDCODED_GURU = [
             { id: 100, username: 'Admin', password: '12345', role: 'Admin' },
-            { id: 101, username: 'Yelmi Putri, S.Pd', password: '12345', role: 'Guru Kelas I' },
-            { id: 102, username: 'Doni Candra, S.Pd', password: '12345', role: 'Guru Kelas II' },
-            { id: 103, username: 'Neldawati, S.Pd.SD', password: '12345', role: 'Guru Kelas III' },
-            { id: 104, username: 'Iismaleni, S.Pd', password: '12345', role: 'Guru Kelas IV' },
-            { id: 105, username: 'Yola Yurmaliza, S.Pd', password: '12345', role: 'Guru Kelas V' },
-            { id: 106, username: 'Nurdasmi, S.Pd.SD', password: '12345', role: 'Guru Kelas VI' },
-            // Akun Guru Mata Pelajaran Baru
-            { id: 201, username: 'Yesi Harini S.Pd I', password: '12345', role: 'Guru PAI' },
-            { id: 202, username: 'Darwati, S.Pd', password: '12345', role: 'Guru Olahraga' },
-            { id: 203, username: 'Nelta Yuli Mardani, S.Pd I', password: '12345', role: 'Guru PQ' },
-            { id: 204, username: 'Yesi Putri, S.Pd', password: '12345', role: 'Guru Bahasa Inggris' },
-            { id: 205, username: 'Rexxy Fitriani, S.Pd', password: '12345', role: 'Guru BAM' }
+            { id: 101, username: 'Neldawati', password: '12345', role: 'Guru Kelas I' },
+            { id: 102, username: 'Doni Candra', password: '12345', role: 'Guru Kelas II' },
+            { id: 103, username: 'Iismaleni', password: '12345', role: 'Guru Kelas III' },
+            { id: 104, username: 'Nurdasmi', password: '12345', role: 'Guru Kelas IV' },
+            { id: 105, username: 'Yola Yurmaliza', password: '12345', role: 'Guru Kelas V' },
+            { id: 106, username: 'Yelmi Putri', password: '12345', role: 'Guru Kelas VI' },
+            { id: 201, username: 'Yesi Harini', password: '12345', role: 'Guru PAI' },
+            { id: 202, username: 'Darwati', password: '12345', role: 'Guru Olahraga' },
+            { id: 203, username: 'Nelta Yuli Mardani', password: '12345', role: 'Guru PAI' },
+            { id: 204, username: 'Yesi Putri', password: '12345', role: 'Guru Bahasa Inggris' },
+            { id: 205, username: 'Rexxy Fitriani', password: '12345', role: 'Guru BAM' }
         ];
 
         // --- PROGRESS SYSTEM ---
@@ -765,8 +814,11 @@
         async function pushToCloud() {
             if (!SCRIPT_URL || !isDataInitialized) return; 
             showToast("Sedang Menyimpan...", "info");
+            
             const payload = {
                 action: "syncAll",
+                userRole: currentUser ? currentUser.role : 'Admin',
+                userUsername: currentUser ? currentUser.username : 'Admin',
                 data: { config: configRapor, kop: configKop, siswa: dataSiswa, mapel: dataMapel, nilai: dataNilai, absensi: dataAbsensi, wali: dataWaliKelas, users: dataUsers }
             };
             try {
@@ -791,7 +843,6 @@
             endProgress(interval);
 
             if(!success) {
-                // Jangan lanjut jika gagal fetch, biarkan user mencoba lagi
                 return;
             }
 
@@ -826,11 +877,21 @@
             const adminFilterLeger = document.getElementById('leger-filter-admin');
             const adminProgressSection = document.getElementById('admin-progress-section');
             const btnAbsensi = document.getElementById('btn-ketidakhadiran');
+            const btnTambahMapel = document.getElementById('btn-tambah-mapel');
 
             if (role === 'Admin' || role.includes('Guru Kelas')) {
                 if(btnAbsensi) btnAbsensi.classList.remove('hidden');
             } else {
                 if(btnAbsensi) btnAbsensi.classList.add('hidden');
+            }
+
+            // HANYA ADMIN yang bisa mengklik dan menggunakan form mata pelajaran
+            if (btnTambahMapel) {
+                if (role === 'Admin') {
+                    btnTambahMapel.classList.remove('hidden');
+                } else {
+                    btnTambahMapel.classList.add('hidden');
+                }
             }
 
             if (role === 'Admin') {
@@ -842,6 +903,7 @@
                 if(adminProgressSection) adminProgressSection.classList.remove('hidden');
                 renderAdminProgress();
             } else {
+                // Di luar Admin, semua menu administrasi sistem (termasuk Mata Pelajaran) disembunyikan total
                 adminNav.classList.add('hidden');
                 adminSections.classList.add('hidden');
                 adminSettings.classList.add('hidden');
@@ -956,11 +1018,26 @@
 
         function addMapel() {
             const f = document.getElementById('mapelForm');
-            const roleMatch = currentUser.role.match(/Kelas\s+([IVX]+)/i);
-            const userClass = roleMatch ? roleMatch[1].toUpperCase() : 'UMUM';
-            const m = { id: Date.now(), nama: document.getElementById('nama_mapel').value, kkm: document.getElementById('kkm_mapel').value, kelas: (currentUser.role === 'Admin') ? 'ADMIN' : userClass };
-            if(!m.nama) return;
-            dataMapel.push(m); pushToCloud(); renderMapelTable(); toggleMapelForm(); f.reset();
+            const nama = document.getElementById('nama_mapel').value;
+            const kkm = document.getElementById('kkm_mapel').value;
+            const kelasInput = document.getElementById('kelas_mapel').value;
+            const urutanInput = document.getElementById('urutan_mapel').value;
+
+            if(!nama) return;
+            
+            const m = { 
+                id: Date.now(), 
+                nama: nama, 
+                kkm: kkm, 
+                kelas: kelasInput, 
+                urutan: urutanInput || "99" 
+            };
+            
+            dataMapel.push(m); 
+            pushToCloud(); 
+            renderMapelTable(); 
+            toggleMapelForm(); 
+            f.reset();
         }
 
         function saveDataRapor() {
@@ -988,6 +1065,8 @@
             
             const payload = {
                 action: "syncAll",
+                userRole: currentUser ? currentUser.role : 'Admin',
+                userUsername: currentUser ? currentUser.username : 'Admin',
                 data: { config: configRapor, kop: configKop, siswa: dataSiswa, mapel: dataMapel, nilai: dataNilai, absensi: dataAbsensi, wali: dataWaliKelas, users: dataUsers }
             };
             try {
@@ -1025,11 +1104,53 @@
             });
         }
 
+        // --- STREAMING_CHUNK: Menyusun logika filtrasi tab "Halaman" Kelas di Tabel Mata Pelajaran... ---
+        function filterMapelByClass(kelas) {
+            activeMapelClass = kelas;
+            const buttons = document.querySelectorAll(".tab-mapel-btn");
+            buttons.forEach(btn => {
+                if (btn.id === `tab-mapel-${kelas}`) {
+                    // Gaya aktif (warna biru solid dengan bayangan lembut)
+                    btn.className = "tab-mapel-btn px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-blue-600 text-white shadow transition-all duration-200";
+                } else {
+                    // Gaya tidak aktif (warna putih bersih dengan border tipis)
+                    btn.className = "tab-mapel-btn px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-white text-slate-500 border hover:bg-slate-50 shadow-sm transition-all duration-200";
+                }
+            });
+            renderMapelTable();
+        }
+
         function renderMapelTable() {
             const t = document.getElementById('mapel-table-body'); if(!t) return;
             t.innerHTML = '';
-            getFilteredMapel().forEach((m, i) => {
-                t.innerHTML += `<tr><td class="px-8 py-4">${i+1}</td><td class="px-8 py-4 font-bold text-slate-700">${m.nama}</td><td class="px-8 py-4 text-center font-black text-blue-600">${m.kkm}</td><td class="px-8 py-4 text-center font-bold text-slate-400 text-xs">${m.kelas}</td><td class="px-8 py-4 text-center"><button onclick="confirmDelete('mapel', ${m.id})" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>`;
+            
+            // Saring mata pelajaran yang HANYA cocok dengan tab halaman kelas yang aktif saat ini
+            const filtered = getFilteredMapel().filter(m => m.kelas === activeMapelClass);
+            
+            const mapelSorted = [...filtered].sort((a,b) => {
+                const urutA = parseInt(a.urutan || 99);
+                const urutB = parseInt(b.urutan || 99);
+                return urutA - urutB;
+            });
+            
+            if (mapelSorted.length === 0) {
+                t.innerHTML = `<tr>
+                    <td colspan="6" class="px-8 py-10 text-center text-slate-400 italic font-medium">
+                        Tidak ada data mata pelajaran untuk tingkatan ${activeMapelClass === 'ADMIN' ? 'Admin / Umum' : 'Kelas ' + activeMapelClass}
+                    </td>
+                </tr>`;
+                return;
+            }
+
+            mapelSorted.forEach((m, i) => {
+                t.innerHTML += `<tr>
+                    <td class="px-8 py-4">${i+1}</td>
+                    <td class="px-8 py-4 font-bold text-slate-700">${m.nama}</td>
+                    <td class="px-8 py-4 text-center font-black text-blue-600">${m.kkm}</td>
+                    <td class="px-8 py-4 text-center font-bold text-slate-400 text-xs">${m.kelas}</td>
+                    <td class="px-8 py-4 text-center font-bold text-emerald-600">${m.urutan || '-'}</td>
+                    <td class="px-8 py-4 text-center"><button onclick="confirmDelete('mapel', ${m.id})" class="text-red-400"><i class="fas fa-trash"></i></button></td>
+                </tr>`;
             });
         }
 
@@ -1194,24 +1315,78 @@
         }
         
         function getFilteredMapel() {
-            if (!currentUser || currentUser.role === 'Admin') return dataMapel;
+            if (!currentUser) return [];
+            if (currentUser.role === 'Admin') return dataMapel;
             
-            if (currentUser.role.includes('Guru PAI')) return dataMapel.filter(m => m.nama.toUpperCase().includes('PAI') || m.nama.toUpperCase().includes('AGAMA'));
-            if (currentUser.role.includes('Guru Olahraga')) return dataMapel.filter(m => m.nama.toUpperCase().includes('PJOK') || m.nama.toUpperCase().includes('OLAHRAGA'));
-            if (currentUser.role.includes('Guru PQ')) return dataMapel.filter(m => m.nama.toUpperCase().includes('PQ') || m.nama.toUpperCase().includes('QURAN'));
-            if (currentUser.role.includes('Guru Bahasa Inggris')) return dataMapel.filter(m => m.nama.toUpperCase().includes('INGGRIS'));
-            if (currentUser.role.includes('Guru BAM')) return dataMapel.filter(m => m.nama.toUpperCase().includes('BAM') || m.nama.toUpperCase().includes('MINANGKABAU'));
+            const isPaiOrQuran = (name) => {
+                const n = name.toUpperCase();
+                return n.includes('PAI') || n.includes('AGAMA') || n.includes('ISLAM') || 
+                       n.includes('QURAN') || n.includes("AL-QUR'AN") || n.includes('PQ');
+            };
+
+            if (currentUser.role.includes('Guru PAI')) {
+                const targetNames = [];
+                dataMapel.forEach(m => {
+                    if (isPaiOrQuran(m.nama)) {
+                        if (!targetNames.includes(m.nama)) {
+                            targetNames.push(m.nama);
+                        }
+                    }
+                });
+
+                const classes = ["I ( Satu )", "II ( Dua )", "III ( Tiga )", "IV ( Empat )", "V ( Lima )", "VI ( Enam )"];
+                const result = [];
+                classes.forEach(cls => {
+                    const classRoman = cls.split(' ')[0].toUpperCase();
+                    targetNames.forEach(name => {
+                        const existing = dataMapel.find(m => m.nama === name && m.kelas === classRoman);
+                        if (existing) {
+                            result.push(existing);
+                        } else {
+                            const template = dataMapel.find(m => m.nama === name);
+                            if (template) {
+                                result.push({
+                                    id: template.id + '_' + classRoman,
+                                    nama: template.nama,
+                                    kkm: template.kkm,
+                                    kelas: classRoman,
+                                    urutan: template.urutan || "99"
+                                });
+                            }
+                        }
+                    });
+                });
+                return result;
+            }
+
+            if (currentUser.role.includes('Guru Olahraga')) {
+                return dataMapel.filter(m => m.nama.toUpperCase().includes('PJOK') || m.nama.toUpperCase().includes('OLAHRAGA'));
+            }
+
+            if (currentUser.role.includes('Guru PQ')) {
+                return dataMapel.filter(m => m.nama.toUpperCase().includes('PQ') || m.nama.toUpperCase().includes('QURAN') || m.nama.toUpperCase().includes("AL-QUR'AN"));
+            }
+
+            if (currentUser.role.includes('Guru Bahasa Inggris')) {
+                return dataMapel.filter(m => m.nama.toUpperCase().includes('INGGRIS'));
+            }
+
+            if (currentUser.role.includes('Guru BAM')) {
+                return dataMapel.filter(m => m.nama.toUpperCase().includes('BAM') || m.nama.toUpperCase().includes('MINANGKABAU'));
+            }
 
             const match = currentUser.role.match(/Kelas\s+([IVX]+)/i);
-            if (!match) return [];
-            const roleClassRoman = match[1].toUpperCase();
+            if (match) {
+                const roleClassRoman = match[1].toUpperCase();
+                return dataMapel.filter(m => {
+                    if (m.kelas !== roleClassRoman && m.kelas !== 'ADMIN') return false;
+                    const n = m.nama.toUpperCase();
+                    const isSpecial = isPaiOrQuran(m.nama) || n.includes('PJOK') || n.includes('OLAHRAGA') || n.includes('INGGRIS') || n.includes('BAM') || n.includes('MINANGKABAU');
+                    return !isSpecial;
+                });
+            }
 
-            return dataMapel.filter(m => {
-                if (m.kelas !== roleClassRoman && m.kelas !== 'ADMIN') return false;
-                const n = m.nama.toUpperCase();
-                const isSpecial = n.includes('PAI') || n.includes('AGAMA') || n.includes('PJOK') || n.includes('OLAHRAGA') || n.includes('INGGRIS') || n.includes('BAM') || n.includes('MINANGKABAU') || n.includes('PQ') || n.includes('QURAN');
-                return !isSpecial;
-            });
+            return [];
         }
 
         function getMapelByClass(className, showAll = false) {
@@ -1219,22 +1394,64 @@
             const classRoman = className.split(' ')[0].toUpperCase();
             let baseMapels = dataMapel.filter(m => m.kelas === classRoman || m.kelas === 'ADMIN');
             
-            if (showAll || (currentUser && currentUser.role === 'Admin')) return baseMapels;
+            const isPaiOrQuran = (name) => {
+                const n = name.toUpperCase();
+                return n.includes('PAI') || n.includes('AGAMA') || n.includes('ISLAM') || 
+                       n.includes('QURAN') || n.includes("AL-QUR'AN") || n.includes('PQ');
+            };
 
-            if (currentUser.role.includes('Guru PAI')) return baseMapels.filter(m => m.nama.toUpperCase().includes('PAI') || m.nama.toUpperCase().includes('AGAMA'));
-            if (currentUser.role.includes('Guru Olahraga')) return baseMapels.filter(m => m.nama.toUpperCase().includes('PJOK') || m.nama.toUpperCase().includes('OLAHRAGA'));
-            if (currentUser.role.includes('Guru PQ')) return baseMapels.filter(m => m.nama.toUpperCase().includes('PQ') || m.nama.toUpperCase().includes('QURAN'));
-            if (currentUser.role.includes('Guru Bahasa Inggris')) return baseMapels.filter(m => m.nama.toUpperCase().includes('INGGRIS'));
-            if (currentUser.role.includes('Guru BAM')) return baseMapels.filter(m => m.nama.toUpperCase().includes('BAM') || m.nama.toUpperCase().includes('MINANGKABAU'));
+            const targetNames = [];
+            dataMapel.forEach(m => {
+                if (isPaiOrQuran(m.nama)) {
+                    if (!targetNames.includes(m.nama)) {
+                        targetNames.push(m.nama);
+                    }
+                }
+            });
 
-            if (currentUser.role.includes('Guru Kelas')) {
-                return baseMapels.filter(m => {
+            let classMapels = [...baseMapels];
+
+            targetNames.forEach(name => {
+                const exists = classMapels.some(m => m.nama === name);
+                if (!exists) {
+                    const template = dataMapel.find(m => m.nama === name);
+                    if (template) {
+                        classMapels.push({
+                            ...template,
+                            kelas: classRoman
+                        });
+                    }
+                }
+            });
+
+            let filteredResult = [];
+            if (showAll || (currentUser && currentUser.role === 'Admin')) {
+                filteredResult = classMapels;
+            } else if (currentUser.role.includes('Guru PAI')) {
+                filteredResult = classMapels.filter(m => isPaiOrQuran(m.nama));
+            } else if (currentUser.role.includes('Guru Olahraga')) {
+                filteredResult = classMapels.filter(m => m.nama.toUpperCase().includes('PJOK') || m.nama.toUpperCase().includes('OLAHRAGA'));
+            } else if (currentUser.role.includes('Guru PQ')) {
+                filteredResult = classMapels.filter(m => m.nama.toUpperCase().includes('PQ') || m.nama.toUpperCase().includes('QURAN') || m.nama.toUpperCase().includes("AL-QUR'AN"));
+            } else if (currentUser.role.includes('Guru Bahasa Inggris')) {
+                filteredResult = classMapels.filter(m => m.nama.toUpperCase().includes('INGGRIS'));
+            } else if (currentUser.role.includes('Guru BAM')) {
+                filteredResult = classMapels.filter(m => m.nama.toUpperCase().includes('BAM') || m.nama.toUpperCase().includes('MINANGKABAU'));
+            } else if (currentUser.role.includes('Guru Kelas')) {
+                filteredResult = classMapels.filter(m => {
                     const n = m.nama.toUpperCase();
-                    return !(n.includes('PAI') || n.includes('AGAMA') || n.includes('PJOK') || n.includes('OLAHRAGA') || n.includes('INGGRIS') || n.includes('BAM') || n.includes('MINANGKABAU') || n.includes('PQ') || n.includes('QURAN'));
+                    return !isPaiOrQuran(m.nama) && !(n.includes('PJOK') || n.includes('OLAHRAGA') || n.includes('INGGRIS') || n.includes('BAM') || n.includes('MINANGKABAU'));
                 });
+            } else {
+                filteredResult = classMapels;
             }
 
-            return baseMapels;
+            // OTOMATIS URUTKAN BERDASARKAN PARAMETER "URUTAN DI RAPOR"
+            return filteredResult.sort((a,b) => {
+                const urutA = parseInt(a.urutan || 99);
+                const urutB = parseInt(b.urutan || 99);
+                return urutA - urutB;
+            });
         }
 
         function populateBulkDropdowns() {
@@ -1299,12 +1516,12 @@
         }
 
         function saveBulkNilai() {
-            const nis = document.getElementById('nilai_nama_siswa').value;
-            const s = dataSiswa.find(it => it.nis == nis); if (!s) return;
+            const rowSelected = document.getElementById('nilai_nama_siswa').value;
+            const s = dataSiswa.find(it => it.nis == rowSelected); if (!s) return;
             const inputs = document.querySelectorAll('.bulk-score-input');
             
             const editedMapels = Array.from(inputs).map(inp => inp.getAttribute('data-mapel'));
-            dataNilai = dataNilai.filter(n => !(n.sId.toString() === nis.toString() && editedMapels.includes(n.mapel)));
+            dataNilai = dataNilai.filter(n => !(n.sId.toString() === rowSelected.toString() && editedMapels.includes(n.mapel)));
             
             inputs.forEach(inp => {
                 const sc = inp.value;
@@ -1331,6 +1548,10 @@
             if(id==='leger-nilai') renderLegerTable();
             if(id==='cetak-rapor') renderCetakTable();
             if(id==='data-wali') renderWaliTable();
+            if(id==='mata-pelajaran') {
+                // Set default filter ke "I" saat membuka halaman mapel
+                filterMapelByClass('I');
+            }
             if(id==='beranda' && currentUser && currentUser.role === 'Admin') renderAdminProgress();
         }
 
@@ -1420,7 +1641,7 @@
             const alfa = aSiswa.filter(a => a.type === 'Tanpa Keterangan').reduce((sum, a) => sum + parseInt(a.jumlah || 0), 0);
             const wSiswa = dataWaliKelas.find(w => w.kelas === s.kelas) || { nama: '................', nip: '-' };
             const classRoman = s.kelas.split(' ')[0].toUpperCase();
-            const relevantMapel = dataMapel.filter(m => m.kelas === classRoman || m.kelas === 'ADMIN');
+            const relevantMapel = getMapelByClass(s.kelas, true);
             const totalScore = nSiswa.reduce((sum, n) => sum + parseInt(n.score || 0), 0);
             const avgScore = relevantMapel.length > 0 ? (totalScore / relevantMapel.length).toFixed(2) : 0;
             const rank = calculateRankings(s.kelas).findIndex(r => r.nis.toString() === studentNis.toString()) + 1;
@@ -1480,7 +1701,7 @@
                 </div>
                 <div style="text-align:center;margin-top:10px;margin-bottom:15px" class="no-border">Mengetahui,<br>Kepala Sekolah<div style="height:75px"></div><b>${configRapor.kepala_sekolah||'-'}</b><br>NIP. ${configRapor.nip_kepala||'-'}</div>
                 <div class="rapor-footer">
-                    Laporan Hasil Belajar Digital | Siswa: ${s.nama} | Kelas: ${s.kelas} | NISN: ${s.nis} | Dicetak Otomatis oleh Sistem E-Raport Cloud
+                    Laporan Hasil Belajar Digital | Siswa: ${s.nama} | Kelas: ${s.kelas} | NISN: ${s.nis} | Dicetak Otomatis oleh Sistem E-Raport UPT SDN 22 Tanah Keras
                 </div>
             </div>`;
         }
