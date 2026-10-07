@@ -1252,13 +1252,22 @@
         }
 
         function saveDataRapor() {
-            configRapor = { nama_rapor: document.getElementById('nama_rapor').value, nama_sekolah: document.getElementById('nama_sekolah').value, alamat_sekolah: document.getElementById('alamat_sekolah').value, kepala_sekolah: document.getElementById('kepala_sekolah').value, nip_kepala: document.getElementById('nip_kepala').value, semester: document.getElementById('semester').value, text_pelajaran: document.getElementById('tahun_pelajaran').value, tgl_rapor: document.getElementById('tgl_rapor').value };
+            configRapor = { nama_rapor: document.getElementById('nama_rapor').value, nama_sekolah: document.getElementById('nama_sekolah').value, alamat_sekolah: document.getElementById('alamat_sekolah').value, kepala_sekolah: document.getElementById('kepala_sekolah').value, nip_kepala: document.getElementById('nip_kepala').value, semester: document.getElementById('semester').value, tahun_pelajaran: document.getElementById('tahun_pelajaran').value, tgl_rapor: document.getElementById('tgl_rapor').value };
             pushToCloud(); updateUIFromState();
         }
 
         function saveKopSurat() {
             configKop = { kop_pemda: document.getElementById('kop_pemda').value, kop_dinas: document.getElementById('kop_dinas').value, kop_sekolah: document.getElementById('kop_sekolah').value, kop_kecamatan: document.getElementById('kop_kecamatan').value, kop_alamat: document.getElementById('kop_alamat').value, kop_email: document.getElementById('kop_email').value, kop_web: document.getElementById('kop_web').value };
-            pushToCloud();
+            pushToCloud(); updateUIFromState();
+        }
+
+        function updateUIFromState() {
+            for (let id in configRapor) { if (document.getElementById(id)) document.getElementById(id).value = configRapor[id]; }
+            for (let id in configKop) { if (document.getElementById(id)) document.getElementById(id).value = configKop[id]; }
+            document.getElementById('display-nama-sekolah').innerText = configRapor.nama_sekolah || '-';
+            document.getElementById('display-tp').innerText = configRapor.tahun_pelajaran || configRapor.text_pelajaran || '-';
+            renderAllTables();
+            if(currentUser && currentUser.role === 'Admin') renderAdminProgress();
         }
 
         function confirmDelete(type, id) {
@@ -2189,7 +2198,7 @@
                 <table class="no-border" style="margin-bottom:8px; line-height:1.2">
                     <tr><td width="15%">Nama Siswa</td><td width="2%">:</td><td width="40%"><b class="uppercase">${s.nama}</b></td><td width="15%">Kelas</td><td width="2%">:</td><td><b>${s.kelas}</b></td></tr>
                     <tr><td>NISN/NIS</td><td>:</td><td><b>${s.nis}</b></td><td>Semester</td><td>:</td><td><b>${configRapor.semester||'-'}</b></td></tr>
-                    <tr><td>Sekolah</td><td>:</td><td><b>${configRapor.nama_sekolah||'-'}</b></td><td>Thn Pelajaran</td><td>:</td><td><b>${configRapor.tahun_pelajaran||'-'}</b></td></tr>
+                    <tr><td>Sekolah</td><td>:</td><td><b>${configRapor.nama_sekolah||'-'}</b></td><td>Thn Pelajaran</td><td>:</td><td><b>${configRapor.tahun_pelajaran||configRapor.text_pelajaran||'-'}</b></td></tr>
                 </table>
                 <table style="margin-bottom:8px">
                     <tr style="background:#f1f5f9;text-align:center"><th width="5%">No</th><th>Mata Pelajaran</th><th width="10%">KKM</th><th width="10%">Nilai</th><th width="12%">Predikat</th></tr>
