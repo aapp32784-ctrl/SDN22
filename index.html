@@ -295,7 +295,7 @@
                 <section id="page-beranda" class="space-y-6">
                     <div class="bg-gradient-to-r from-blue-700 to-blue-500 rounded-3xl p-10 text-white shadow-2xl relative overflow-hidden">
                         <div class="relative z-10">
-                            <h2 class="text-4xl font-black mb-2 tracking-tight">E-Raport Digital SDN 22 Tanah Keras 👋</h2>
+                            <h2 class="text-4xl font-black mb-2 tracking-tight">E-Raport Digital SDN 22 TANAH KERAS 👋</h2>
                             <p class="text-blue-100 max-w-2xl text-lg font-medium">Sistem Sinkronisasi Multi-User Aktif. Pengisian nilai bersamaan antar guru dijamin aman dan teratur.</p>
                         </div>
                     </div>
@@ -1911,6 +1911,80 @@
                 </html>
             `);
             win.document.close();
+        }
+
+        function eksporUserExcel() {
+            const allUsers = [...HARDCODED_GURU, ...dataUsers];
+            const teacherUsers = allUsers.filter(u => u.role !== 'Admin' && u.username.toLowerCase() !== 'admin');
+
+            if (teacherUsers.length === 0) {
+                showToast("Tidak ada data guru untuk diekspor", "info");
+                return;
+            }
+
+            let tableRows = '';
+            teacherUsers.forEach((u, i) => {
+                tableRows += `<tr>
+                    <td style="text-align:center; border:1px solid #000000; padding:6px;">${i + 1}</td>
+                    <td style="border:1px solid #000000; padding:6px; mso-number-format:'\\@';">${u.username}</td>
+                    <td style="border:1px solid #000000; padding:6px; mso-number-format:'\\@';">${u.password}</td>
+                    <td style="border:1px solid #000000; padding:6px;">${u.role}</td>
+                </tr>`;
+            });
+
+            let excelHTML = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta charset="utf-8">
+                    <!--[if gte mso 9]>
+                    <xml>
+                    <x:ExcelWorkbook>
+                    <x:ExcelWorksheets>
+                    <x:ExcelWorksheet>
+                    <x:Name>Data Pengguna Guru</x:Name>
+                    <x:WorksheetOptions>
+                    <x:DisplayGridlines/>
+                    </x:WorksheetOptions>
+                    </x:ExcelWorksheet>
+                    </x:ExcelWorksheets>
+                    </x:ExcelWorkbook>
+                    </xml>
+                    <![endif]-->
+                    <style>
+                        table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 10pt; }
+                        th { border: 1px solid #000000; padding: 8px; background-color: #1e40af; color: #ffffff; }
+                        td { border: 1px solid #000000; padding: 6px; }
+                    </style>
+                </head>
+                <body>
+                    <h2 style="margin:0; padding:0; font-family:Arial, sans-serif;">DAFTAR AKUN PENGGUNA GURU - E-RAPORT</h2>
+                    <h3 style="margin:4px 0 12px 0; padding:0; font-family:Arial, sans-serif;">${configRapor.nama_sekolah || 'SDN 22 TANAH KERAS'}</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="background-color:#1e40af; color:#ffffff; font-weight:bold; border:1px solid #000000; text-align:center;">No</th>
+                                <th style="background-color:#1e40af; color:#ffffff; font-weight:bold; border:1px solid #000000; text-align:left;">Username</th>
+                                <th style="background-color:#1e40af; color:#ffffff; font-weight:bold; border:1px solid #000000; text-align:left;">Password</th>
+                                <th style="background-color:#1e40af; color:#ffffff; font-weight:bold; border:1px solid #000000; text-align:left;">Peran (Role)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([excelHTML], { type: 'application/vnd.ms-excel;charset=utf-8' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute("download", `Data_User_Guru.xls`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("Berhasil mengekspor Data Guru ke Excel");
         }
 
         function resetPrintSettings() {
