@@ -2146,6 +2146,9 @@
             }
 
             const rankList = calculateRankings(selectedClass);
+            const wWali = dataWaliKelas.find(w => isSameClass(w.kelas, selectedClass)) || { nama: '................', nip: '-' };
+            const dateStr = configRapor.tgl_rapor ? new Date(configRapor.tgl_rapor).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'}) : '................';
+            const totalCols = classMapel.length + 5; // No + Nama + Mapel... + Jumlah + Rata + Rank
 
             let tableHeader = `<tr>
                 <th style="background-color:#047857; color:#ffffff; font-weight:bold; border:1px solid #000000; text-align:center;">No</th>
@@ -2188,6 +2191,7 @@
                     <style>
                         table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 10pt; }
                         th, td { border: 1px solid #000000; padding: 6px; }
+                        .no-border, .no-border td { border: none !important; }
                     </style>
                 </head>
                 <body>
@@ -2197,6 +2201,37 @@
                     <table>
                         <thead>${tableHeader}</thead>
                         <tbody>${tableRows}</tbody>
+                    </table>
+                    <br><br>
+                    <table class="no-border" style="width:100%;">
+                        <tr>
+                            <td colspan="2" style="border:none;"></td>
+                            <td colspan="${Math.max(1, totalCols - 2)}" style="text-align:right; border:none; font-weight:bold;">
+                                ${configRapor.alamat_sekolah || 'Tanah Keras'}, ${dateStr}
+                            </td>
+                        </tr>
+                        <tr style="height:20px;"><td colspan="${totalCols}" style="border:none;"></td></tr>
+                        <tr>
+                            <td colspan="3" style="text-align:center; border:none; font-weight:bold;">
+                                Mengetahui,<br>Kepala Sekolah
+                            </td>
+                            <td colspan="${Math.max(1, totalCols - 6)}" style="border:none;"></td>
+                            <td colspan="3" style="text-align:center; border:none; font-weight:bold;">
+                                Guru Kelas ${selectedClass}
+                            </td>
+                        </tr>
+                        <tr style="height:60px;"><td colspan="${totalCols}" style="border:none;"></td></tr>
+                        <tr>
+                            <td colspan="3" style="text-align:center; border:none; font-weight:bold;">
+                                <u>${configRapor.kepala_sekolah || '............................'}</u><br>
+                                NIP. ${configRapor.nip_kepala || '-'}
+                            </td>
+                            <td colspan="${Math.max(1, totalCols - 6)}" style="border:none;"></td>
+                            <td colspan="3" style="text-align:center; border:none; font-weight:bold;">
+                                <u>${wWali.nama || '............................'}</u><br>
+                                NIP. ${wWali.nip || '-'}
+                            </td>
+                        </tr>
                     </table>
                 </body>
                 </html>
@@ -2209,7 +2244,7 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            showToast("Berhasil mengekspor Leger ke Excel");
+            showToast("Berhasil mengekspor Leger ke Excel (dengan Tanda Tangan)");
         }
 
         function cetakUserList() {
@@ -2597,6 +2632,10 @@
                 return;
             }
 
+            const wWali = dataWaliKelas.find(w => isSameClass(w.kelas, targetClass)) || { nama: '................', nip: '-' };
+            const dateStr = archive.tgl_rapor ? new Date(archive.tgl_rapor).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'}) : '................';
+            const totalCols = classMapel.length + 5;
+
             let tableHeader = `<tr>
                 <th style="background-color:#b45309; color:#ffffff; font-weight:bold; border:1px solid #000000; text-align:center; padding:8px;">No</th>
                 <th style="background-color:#b45309; color:#ffffff; font-weight:bold; border:1px solid #000000; text-align:left; padding:8px;">Nama Peserta Didik</th>`;
@@ -2632,6 +2671,7 @@
                         table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 10pt; }
                         th { border: 1px solid #000000; padding: 8px; }
                         td { border: 1px solid #000000; padding: 6px; }
+                        .no-border, .no-border td { border: none !important; }
                     </style>
                 </head>
                 <body>
@@ -2649,6 +2689,37 @@
                             ${tableRows}
                         </tbody>
                     </table>
+                    <br><br>
+                    <table class="no-border" style="width:100%;">
+                        <tr>
+                            <td colspan="2" style="border:none;"></td>
+                            <td colspan="${Math.max(1, totalCols - 2)}" style="text-align:right; border:none; font-weight:bold;">
+                                ${configRapor.alamat_sekolah || 'Tanah Keras'}, ${dateStr}
+                            </td>
+                        </tr>
+                        <tr style="height:20px;"><td colspan="${totalCols}" style="border:none;"></td></tr>
+                        <tr>
+                            <td colspan="3" style="text-align:center; border:none; font-weight:bold;">
+                                Mengetahui,<br>Kepala Sekolah
+                            </td>
+                            <td colspan="${Math.max(1, totalCols - 6)}" style="border:none;"></td>
+                            <td colspan="3" style="text-align:center; border:none; font-weight:bold;">
+                                Guru Kelas ${targetClass}
+                            </td>
+                        </tr>
+                        <tr style="height:60px;"><td colspan="${totalCols}" style="border:none;"></td></tr>
+                        <tr>
+                            <td colspan="3" style="text-align:center; border:none; font-weight:bold;">
+                                <u>${archive.kepala_sekolah || configRapor.kepala_sekolah || '............................'}</u><br>
+                                NIP. ${archive.nip_kepala || configRapor.nip_kepala || '-'}
+                            </td>
+                            <td colspan="${Math.max(1, totalCols - 6)}" style="border:none;"></td>
+                            <td colspan="3" style="text-align:center; border:none; font-weight:bold;">
+                                <u>${wWali.nama || '............................'}</u><br>
+                                NIP. ${wWali.nip || '-'}
+                            </td>
+                        </tr>
+                    </table>
                 </body>
                 </html>
             `;
@@ -2661,7 +2732,7 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            showToast("Berhasil mengekspor Leger Arsip ke Excel");
+            showToast("Berhasil mengekspor Leger Arsip ke Excel (dengan Tanda Tangan)");
         }
 
         function cetakRaporArsip(archiveId, studentNis) {
